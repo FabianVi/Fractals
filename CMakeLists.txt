@@ -7,8 +7,7 @@ configure_file(src/Config.h.in src/Config.h)
 
 add_subdirectory(libs/wxWidgets)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
-
+add_executable(${PROJECT_NAME} src/main.cpp src/Algorithm.h src/Algorithm.cpp)
 
 target_link_libraries(${PROJECT_NAME} wx::net wx::core wx::base)
 
