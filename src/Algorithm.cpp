@@ -2,12 +2,12 @@
 // Created by Fabian Vidounig on 18.11.21.
 //
 
-#include <math.h>;
-#include <thread>;
+#include <math.h>
+#include <thread>
 #include <vector>
-#include <iostream>;
 
-#include "Vector.h";
+#include "Vector.h"
+#include "benchmark.h"
 
 namespace Algorithm {
     double map(int point, int pixelWidth, double min, double max){
@@ -63,8 +63,10 @@ namespace Algorithm {
     }
 
     void Mandelbrot(unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), Vector2x2<double> view = Vector2x2<double>(-2,-1,1,1)) {
+        ScopedTimer sc("Mandelbrot alg");
+
         int processor_count = std::thread::hardware_concurrency();
-        //int processor_count = 1;
+        //int processor_count = 128;
 
         if(processor_count==0)
             processor_count = 1;
@@ -78,7 +80,5 @@ namespace Algorithm {
 
         for(auto &t : processes)
             t.join();
-
-        std::cout << processor_count << std::endl;
     }
 }

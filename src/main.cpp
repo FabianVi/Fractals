@@ -8,10 +8,12 @@
 
 #include <wx/gdicmn.h>
 
-#include "Config.h.in";
+#include "Config.h.in"
 
-#include "Vector.h";
-#include "Algorithm.h";
+#include "Vector.h"
+#include "Algorithm.h"
+
+#include "benchmark.h"
 
 class BasicDrawPane : public wxPanel
 {
@@ -28,8 +30,7 @@ BEGIN_EVENT_TABLE(BasicDrawPane, wxPanel)
     EVT_PAINT(BasicDrawPane::paintEvent)
 END_EVENT_TABLE()
 
-BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent){
-}
+BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent){}
 
 /**
  * will be called if it needs to be repainted or Update() or Refresh() gets called on th Class N.B. handels repaints
@@ -37,24 +38,25 @@ BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent){
  */
 void BasicDrawPane::paintEvent(wxPaintEvent & evt)
 {
-    wxClientDC dc(this);
+    ScopedTimer sc("paintEvent");
+    DestinctTimer dt1("draw img");
 
     int w;
     int h;
     this->GetSize(&w,&h);
 
-    std::cout << "W: " << w << " H: " << h << std::endl;
-
-    dc.Clear();
-
     unsigned char* imdata = (unsigned char*) malloc( w * h * 3 );
-
     Algorithm::Mandelbrot(imdata,Vector2D<int>(w , h));
 
+    dt1.start();
+    wxClientDC dc(this);
+
+    dc.Clear();
     wxImage m_image = wxImage(w, h, imdata);
     wxBitmap m_bitmap = wxBitmap(m_image);
 
     dc.DrawBitmap(m_bitmap,0,0,true);
+    dt1.stop();
 }
 
 
