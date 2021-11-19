@@ -10,6 +10,7 @@
 
 #include "Config.h.in";
 
+#include "Vector.h";
 #include "Algorithm.h";
 
 class BasicDrawPane : public wxPanel
@@ -48,7 +49,7 @@ void BasicDrawPane::paintEvent(wxPaintEvent & evt)
 
     unsigned char* imdata = (unsigned char*) malloc( w * h * 3 );
 
-    Algorithm::Mandelbrot(imdata,w,h);
+    Algorithm::Mandelbrot(imdata,Vector2D<int>(w , h));
 
     wxImage m_image = wxImage(w, h, imdata);
     wxBitmap m_bitmap = wxBitmap(m_image);

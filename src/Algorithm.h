@@ -4,8 +4,11 @@
 
 #ifndef FRACTALS_ALGORITHM_H
 #define FRACTALS_ALGORITHM_H
-#endif  FRACTALS_ALGORITHM_H
+
+#include "Vector.h";
 
 namespace Algorithm {
-    void Mandelbrot(unsigned char *image, int width=1200, int height=800, double minX=-2, double minY=-1, double maxX=1, double maxY=1);
+    void Mandelbrot(unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), Vector2x2<double> view = Vector2x2<double>(-2,-1,1,1));
 }
+
+#endif  FRACTALS_ALGORITHM_H
