@@ -46,7 +46,7 @@ void BasicDrawPane::paintEvent(wxPaintEvent & evt)
     this->GetSize(&w,&h);
 
     unsigned char* imdata = (unsigned char*) malloc( w * h * 3 );
-    Algorithm::Mandelbrot(imdata,Vector2D<int>(w , h),1000);
+    Algorithm::Mandelbrot(imdata,Vector2D<int>(w , h),100);
 
     dt1.start();
     wxClientDC dc(this);

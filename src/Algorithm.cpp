@@ -79,7 +79,7 @@ namespace Algorithm {
         std::vector<std::thread> processes;
 
         for(int i = 1; i<=processor_count;i++)
-            processes.push_back(std::thread(mandelbrot_renderer, iterations,iteration_map, resolution ,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y) ,view, 100));
+            processes.push_back(std::thread(mandelbrot_renderer, iterations,iteration_map, resolution ,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y) ,view, depth));
 
         for(auto &t : processes)
             t.join();
