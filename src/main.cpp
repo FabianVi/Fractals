@@ -46,13 +46,13 @@ void BasicDrawPane::paintEvent(wxPaintEvent & evt)
     this->GetSize(&w,&h);
 
     unsigned char* imdata = (unsigned char*) malloc( w * h * 3 );
-    Algorithm::Mandelbrot(imdata,Vector2D<int>(w , h));
+    Algorithm::Mandelbrot(imdata,Vector2D<int>(w , h),1000);
 
     dt1.start();
     wxClientDC dc(this);
 
     dc.Clear();
-    wxImage m_image = wxImage(w, h, imdata);
+    wxImage m_image = wxImage(w, h, imdata, true);
     wxBitmap m_bitmap = wxBitmap(m_image);
 
     dc.DrawBitmap(m_bitmap,0,0,true);
@@ -68,7 +68,7 @@ private:
     BasicDrawPane * drawPane;
 };
 
-MyFrame::MyFrame() : wxFrame(NULL, wxID_ANY, "Fractals",wxPoint(50,50), wxSize(1200,800)) {
+MyFrame::MyFrame() : wxFrame(NULL, wxID_ANY, "Fractals",wxPoint(50,50), wxSize(800,800)) {
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
     drawPane = new BasicDrawPane( (wxFrame*) this);
 
