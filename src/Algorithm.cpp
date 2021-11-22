@@ -59,7 +59,10 @@ namespace Algorithm {
 
     void Mandelbrot(unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), int depth=100, Vector2x2<double> view = Vector2x2<double>(-2,-1,1,1)) {
         ScopedTimer sc("Mandelbrot alg");
+        DestinctTimer dt1("Coloring");
+        DestinctTimer dt2("Calculating");
 
+        dt2.start();
         int *iterations = new int[depth+1];
         for(int i=0; i<=depth;i++)
             iterations[i] = 0;
@@ -84,6 +87,9 @@ namespace Algorithm {
         for(auto &t : processes)
             t.join();
 
+        dt2.stop();
+        dt1.start();
+
         for(int i=0; i<=depth;i++)
             total += iterations[i];
 
@@ -91,7 +97,6 @@ namespace Algorithm {
 
         for(int i=0; i<(resolution.x*resolution.y);i++)
             hue[i] = 0;
-
 
         for(int y=0; y<resolution.y;y++)
             for(int x=0; x<resolution.x;x++)
@@ -114,6 +119,8 @@ namespace Algorithm {
                 image[y*resolution.x*3+x*3+1] = 255-(unsigned char)(hue[y*resolution.x+x]*255);
                 image[y*resolution.x*3+x*3+2] = 255-(unsigned char)(hue[y*resolution.x+x]*255);
             }
+
+        dt1.stop();
 
         delete iteration_map;
         delete iterations;

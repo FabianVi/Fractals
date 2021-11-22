@@ -23,7 +23,7 @@ public:
     }
     ~ScopedTimer() {
 
-        std::cout << "Timer : " <<  name << "ran: " << (getCurrentMillis() - ms) << "ms" << std::endl;
+        std::cout << "Timer : " <<  name << " : " << (getCurrentMillis() - ms) << "ms" << std::endl;
 
     }
 };
@@ -41,7 +41,7 @@ public:
         this->ms = getCurrentMillis();
     }
     void stop() {
-        std::cout << "Timer : " <<  name << "ran: " << (getCurrentMillis() - ms) << "ms" << std::endl;
+        std::cout << "Timer : " <<  name << " : " << (getCurrentMillis() - ms) << "ms" << std::endl;
     }
 };
 
