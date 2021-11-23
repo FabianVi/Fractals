@@ -23,8 +23,9 @@ public:
     }
     ~ScopedTimer() {
 
+        #ifdef benchmark
         std::cout << "Timer : " <<  name << " : " << (getCurrentMillis() - ms) << "ms" << std::endl;
-
+        #endif
     }
 };
 
@@ -41,8 +42,9 @@ public:
         this->ms = getCurrentMillis();
     }
     void stop() {
+        #ifdef benchmark
         std::cout << "Timer : " <<  name << " : " << (getCurrentMillis() - ms) << "ms" << std::endl;
+        #endif
     }
 };
-
 #endif FRACTALS_BENCHMARK_H

@@ -54,7 +54,7 @@ namespace Algorithm {
         return (point/(pixelWidth*1.0f)*((max-min)) + min);
     }
 
-    void mandelbrot_renderer(int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView , Vector2x2<double> view, int depth) {
+    void mandelbrot_calculator(int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView , Vector2x2<double> view, int depth) {
 
         for (int yp = renderView.y1; yp < renderView.y2; ++yp) {
             if(yp<0)
@@ -97,12 +97,44 @@ namespace Algorithm {
         }
     }
 
+    void mandelbrot_renderer(unsigned char *image,int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView, int depth, int total) {
+
+        for (int y = renderView.y1; y < renderView.y2; ++y) {
+            if(y<0)
+                continue;
+
+            if(y>=resolution.y)
+                break;
+
+            for (int x = renderView.x1; x < renderView.x2; ++x) {
+
+                if(x<0)
+                    continue;
+
+                if(x>=resolution.x)
+                    break;
+
+                double hue = 0;
+
+                for (int i = 0; i < iteration_map[y*resolution.x+x] && iteration_map[y*resolution.x+x]<=depth; i++) {
+                    hue += iterations[i]/(total*1.0f);
+                }
+
+                RGB rgb = HSVtoRGB(20+hue*60,100,100-iteration_map[y*resolution.x+x]*100.0f/(depth));
+                image[y*resolution.x*3+x*3] = rgb.R;
+                image[y*resolution.x*3+x*3+1] = rgb.G;
+                image[y*resolution.x*3+x*3+2] = rgb.B;
+
+            }
+        }
+    }
+
     void Mandelbrot(unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), int depth=100, Vector2x2<double> view = Vector2x2<double>(-2,-1,1,1)) {
         ScopedTimer sc("Mandelbrot alg");
-        DestinctTimer dt1("Coloring");
-        DestinctTimer dt2("Calculating");
+        DestinctTimer dt1("Calculating");
+        DestinctTimer dt2("Coloring");
 
-        dt2.start();
+        dt1.start();
         int *iterations = new int[depth+1];
         for(int i=0; i<=depth;i++)
             iterations[i] = 0;
@@ -122,49 +154,29 @@ namespace Algorithm {
         std::vector<std::thread> processes;
 
         for(int i = 1; i<=processor_count;i++)
-            processes.push_back(std::thread(mandelbrot_renderer, iterations,iteration_map, resolution ,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y) ,view, depth));
+            processes.push_back(std::thread(mandelbrot_calculator, iterations,iteration_map, resolution ,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y) ,view, depth));
+
+        for(auto &t : processes)
+            t.join();
+
+        dt1.stop();
+        processes.clear();
+
+
+        dt2.start();
+
+        for(int i=0; i<=depth;i++)
+            total += iterations[i];
+
+        for(int i = 1; i<=processor_count;i++)
+            processes.push_back(std::thread(mandelbrot_renderer, image,iterations,iteration_map,resolution,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y),depth,total));
 
         for(auto &t : processes)
             t.join();
 
         dt2.stop();
-        dt1.start();
-
-        for(int i=0; i<=depth;i++)
-            total += iterations[i];
-
-        double *hue = new double[resolution.x*resolution.y];
-
-        for(int i=0; i<(resolution.x*resolution.y);i++)
-            hue[i] = 0;
-
-        for(int y=0; y<resolution.y;y++)
-            for(int x=0; x<resolution.x;x++)
-            {
-
-                if(iteration_map[y*resolution.x+x]>depth)
-                    std::cout << iteration_map[y*resolution.x+x] << std::endl;
-
-                for (int i = 0; i < iteration_map[y*resolution.x+x] && iteration_map[y*resolution.x+x]<=depth; i++) {
-                    hue[resolution.x*y+x] += iterations[i]/(total*1.0f);
-                }
-            }
-
-
-
-        for(int y=0; y<resolution.y;y++)
-            for(int x=0; x<resolution.x;x++)
-            {
-                RGB rgb = HSVtoRGB(20+hue[y*resolution.x+x]*60,100,100-iteration_map[y*resolution.x+x]*100.0f/(depth));
-                image[y*resolution.x*3+x*3] = rgb.R;
-                image[y*resolution.x*3+x*3+1] = rgb.G;
-                image[y*resolution.x*3+x*3+2] = rgb.B;
-            }
-
-        dt1.stop();
 
         delete iteration_map;
         delete iterations;
-        delete hue;
     }
 }
