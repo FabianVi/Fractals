@@ -24,4 +24,4 @@ struct Vector2x2 {
     T y2;
 };
 
-#endif FRACTALS_VECTOR_H
+#endif

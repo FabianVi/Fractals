@@ -1,4 +1,4 @@
-#include <math.h>
+#include <cmath>
 #include <iostream>
 
 #include <wx/wxprec.h>
@@ -20,7 +20,7 @@ class BasicDrawPane : public wxPanel
 private:
     Vector2x2<double> view;
 public:
-    BasicDrawPane(wxFrame* parent);
+    explicit BasicDrawPane(wxFrame* parent);
     void paintEvent(wxPaintEvent & evt);
     void OnClick(wxMouseEvent& evt);
     void Mousewheel(wxMouseEvent& evt);
@@ -28,21 +28,17 @@ public:
     void HandleKey(wxKeyEvent& evt);
 
     void zoom(double factor);
-
-    DECLARE_EVENT_TABLE()
 };
 
-BEGIN_EVENT_TABLE(BasicDrawPane, wxPanel)
-    EVT_PAINT(BasicDrawPane::paintEvent)
-    EVT_LEFT_UP(BasicDrawPane::OnClick)
-    EVT_MOUSEWHEEL(BasicDrawPane::Mousewheel)
-    EVT_KEY_DOWN(BasicDrawPane::HandleKey)
-END_EVENT_TABLE()
-
-BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2.0,-1.0,1.0,1.0){}
+BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2.0,-1.0,1.0,1.0){
+    Bind(wxEVT_PAINT,&BasicDrawPane::paintEvent,this);
+    Bind(wxEVT_LEFT_UP,&BasicDrawPane::OnClick,this);
+    Bind(wxEVT_MOUSEWHEEL,&BasicDrawPane::Mousewheel,this);
+    Bind(wxEVT_KEY_DOWN,&BasicDrawPane::HandleKey,this);
+}
 
 /**
- * will be called if it needs to be repainted or Update() or Refresh() gets called on th Class N.B. handels repaints
+ * will be called if it needs to be repainted or Update() or Refresh() gets called on th Class N.B. handles repaints
  * @param evt
  */
 void BasicDrawPane::paintEvent(wxPaintEvent & evt)
@@ -54,14 +50,14 @@ void BasicDrawPane::paintEvent(wxPaintEvent & evt)
     int h;
     this->GetSize(&w,&h);
 
-    unsigned char* imdata = (unsigned char*) malloc( w * h * 3 );
-    Algorithm::Mandelbrot(imdata,Vector2D<int>(w , h),100,view);
+    auto* im_data = (unsigned char*) malloc(w * h * 3 );
+    Algorithm::Mandelbrot(im_data, Vector2D<int>(w , h), 100, view);
 
     dt1.start();
     wxClientDC dc(this);
 
     dc.Clear();
-    wxImage m_image = wxImage(w, h, imdata, true);
+    wxImage m_image = wxImage(w, h, im_data, true);
     wxBitmap m_bitmap = wxBitmap(m_image);
 
     dc.DrawBitmap(m_bitmap,0,0,true);
@@ -151,25 +147,25 @@ private:
     BasicDrawPane * drawPane;
 };
 
-MyFrame::MyFrame() : wxFrame(NULL, 10, "Fractals",wxPoint(50,50), wxSize(600,400)) {
-    wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,400)) {
+    auto* sizer = new wxBoxSizer(wxHORIZONTAL);
     drawPane = new BasicDrawPane( (wxFrame*) this);
 
     sizer->Add(drawPane, 1, wxEXPAND);
     this->SetSizer(sizer);
     this->SetAutoLayout(true);
-};
+}
 
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit();
+    bool OnInit() override;
 };
 wxIMPLEMENT_APP(MyApp);
 
 bool MyApp::OnInit()
 {
-    MyFrame *frame = new MyFrame();
+    auto *frame = new MyFrame();
     frame->Show(true);
     return true;
 }

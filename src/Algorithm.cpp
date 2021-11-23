@@ -176,7 +176,7 @@ namespace Algorithm {
 
         dt2.stop();
 
-        delete iteration_map;
-        delete iterations;
+        delete[] iteration_map;
+        delete[] iterations;
     }
 }

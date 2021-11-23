@@ -47,4 +47,4 @@ public:
         #endif
     }
 };
-#endif FRACTALS_BENCHMARK_H
+#endif
