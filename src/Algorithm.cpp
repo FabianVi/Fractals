@@ -120,7 +120,7 @@ namespace Algorithm {
                     hue += iterations[i]/(total*1.0f);
                 }
 
-                RGB rgb = HSVtoRGB(20+hue*60,100,100-iteration_map[y*resolution.x+x]*100.0f/(depth));
+                RGB rgb = HSVtoRGB(20+hue*60,100, iteration_map[y*resolution.x+x]==100? 0 : 100);
                 image[y*resolution.x*3+x*3] = rgb.R;
                 image[y*resolution.x*3+x*3+1] = rgb.G;
                 image[y*resolution.x*3+x*3+2] = rgb.B;
