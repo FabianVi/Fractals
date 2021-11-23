@@ -111,6 +111,7 @@ void BasicDrawPane::zoom(double factor) {
     view.x2 -= factor*(view.x2-view.x1);
     view.y1 += factor*(view.y2-view.y1);
     view.y2 -= factor*(view.y2-view.y1);
+    std::cout << view;
 }
 
 void BasicDrawPane::HandleKey(wxKeyEvent &evt) {
