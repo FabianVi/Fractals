@@ -9,6 +9,46 @@
 #include "Vector.h"
 #include "benchmark.h"
 
+struct RGB {
+    RGB(unsigned char R=0,unsigned char G=0,unsigned char B=0): R(R),G(G),B(B) {};
+
+    unsigned char R=0;
+    unsigned char G=0;
+    unsigned char B=0;
+};
+
+RGB HSVtoRGB(float H, float S,float V){
+    if(H>360 || H<0 || S>100 || S<0 || V>100 || V<0){
+        return RGB();
+    }
+    float s = S/100;
+    float v = V/100;
+    float C = s*v;
+    float X = C*(1-abs(fmod(H/60.0, 2)-1));
+    float m = v-C;
+    float r,g,b;
+    if(H >= 0 && H < 60){
+        r = C,g = X,b = 0;
+    }
+    else if(H >= 60 && H < 120){
+        r = X,g = C,b = 0;
+    }
+    else if(H >= 120 && H < 180){
+        r = 0,g = C,b = X;
+    }
+    else if(H >= 180 && H < 240){
+        r = 0,g = X,b = C;
+    }
+    else if(H >= 240 && H < 300){
+        r = X,g = 0,b = C;
+    }
+    else{
+        r = C,g = 0,b = X;
+    }
+
+    return RGB((r+m)*255,(g+m)*255,(b+m)*255);
+}
+
 namespace Algorithm {
     double map(int point, int pixelWidth, double min, double max){
         return (point/(pixelWidth*1.0f)*((max-min)) + min);
@@ -115,9 +155,10 @@ namespace Algorithm {
         for(int y=0; y<resolution.y;y++)
             for(int x=0; x<resolution.x;x++)
             {
-                image[y*resolution.x*3+x*3] = 255-(unsigned char)(hue[y*resolution.x+x]*255);
-                image[y*resolution.x*3+x*3+1] = 255-(unsigned char)(hue[y*resolution.x+x]*255);
-                image[y*resolution.x*3+x*3+2] = 255-(unsigned char)(hue[y*resolution.x+x]*255);
+                RGB rgb = HSVtoRGB(20+hue[y*resolution.x+x]*60,100,100-iteration_map[y*resolution.x+x]*100.0f/(depth));
+                image[y*resolution.x*3+x*3] = rgb.R;
+                image[y*resolution.x*3+x*3+1] = rgb.G;
+                image[y*resolution.x*3+x*3+2] = rgb.B;
             }
 
         dt1.stop();
