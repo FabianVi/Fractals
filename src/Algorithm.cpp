@@ -51,7 +51,7 @@ RGB HSVtoRGB(float H, float S,float V){
 
 namespace Algorithm {
     double map(int point, int pixelWidth, double min, double max){
-        return (point/(pixelWidth*1.0f)*((max-min)) + min);
+        return (point/(pixelWidth*1.0f)*(max-min)) + min;
     }
 
     void mandelbrot_calculator(int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView , Vector2x2<double> view, int depth) {

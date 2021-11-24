@@ -14,7 +14,7 @@
 #include "Algorithm.h"
 
 #include "benchmark.h"
-
+// https://en.wikipedia.org/wiki/GNU_Multiple_Precision_Arithmetic_Library
 class BasicDrawPane : public wxPanel
 {
 private:
@@ -86,24 +86,38 @@ void BasicDrawPane::OnClick(wxMouseEvent& evt){
 
 void BasicDrawPane::Mousewheel(wxMouseEvent &evt) {
     int rot = evt.GetWheelRotation();
-    double zoomFactor = rot * 0.001;
+    double zoomFactor = rot * 0.001+1;
 
     int x, y;
     evt.GetPosition(&x,&y);
 
+
     int w,h;
     this->GetSize(&w,&h);
 
-    double dx =  (view.x2-view.x1)*(((double)x)/w -0.5);
-    double dy =  (view.y2-view.y1)*(((double)y)/h -0.5);
+    double  x_m=Algorithm::map(x,w,view.x1,view.x2),
+            y_m=Algorithm::map(y,h,view.y1,view.y2);
 
-    view.x1 += dx * zoomFactor * 5;
-    view.x2 += dx * zoomFactor * 5;
-    view.y1 += dy * zoomFactor * 5;
-    view.y2 += dy * zoomFactor * 5;
+    double dx1 = x_m-view.x1;
+    double dx2 = view.x2 - x_m;
 
-    zoom(zoomFactor);
-    BasicDrawPane::Refresh();
+    dx1*=zoomFactor;
+    dx2*=zoomFactor;
+
+    double dy1 = y_m-view.y1;
+    double dy2 = view.y2-y_m;
+
+    dy1*=zoomFactor;
+    dy2*=zoomFactor;
+
+    view.x1 = x_m-dx1;
+    view.x2 = x_m+dx2;
+
+    view.y1 = y_m-dy1;
+    view.y2 = y_m+dy2;
+
+
+   BasicDrawPane::Refresh();
 }
 
 void BasicDrawPane::zoom(double factor) {
