@@ -14,7 +14,15 @@
 #include "Algorithm.h"
 
 #include "benchmark.h"
+
+#include <boost/math/constants/constants.hpp>
+#include <boost/multiprecision/cpp_dec_float.hpp>
+
+using boost::multiprecision::cpp_dec_float_50;
+
 // https://en.wikipedia.org/wiki/GNU_Multiple_Precision_Arithmetic_Library
+// https://gmplib.org
+
 class BasicDrawPane : public wxPanel
 {
 private:
@@ -182,5 +190,6 @@ bool MyApp::OnInit()
 {
     auto *frame = new MyFrame();
     frame->Show(true);
+
     return true;
 }
