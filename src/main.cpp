@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -26,7 +27,7 @@ using boost::multiprecision::cpp_dec_float_50;
 class BasicDrawPane : public wxPanel
 {
 private:
-    Vector2x2<double> view;
+    Vector2x2<long double> view;
 public:
     explicit BasicDrawPane(wxFrame* parent);
     void paintEvent(wxPaintEvent & evt);
@@ -35,7 +36,7 @@ public:
 
     void HandleKey(wxKeyEvent& evt);
 
-    void zoom(double factor);
+    void zoom(long double factor);
 };
 
 BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2.0,-1.0,1.0,1.0){
@@ -59,7 +60,7 @@ void BasicDrawPane::paintEvent(wxPaintEvent & evt)
     this->GetSize(&w,&h);
 
     auto* im_data = (unsigned char*) malloc(w * h * 3 );
-    Algorithm::Mandelbrot(im_data, Vector2D<int>(w , h), 100, view);
+    Algorithm::Mandelbrot(im_data, Vector2D<int>(w , h), 256, view);
 
     dt1.start();
     wxClientDC dc(this);
@@ -79,41 +80,40 @@ void BasicDrawPane::OnClick(wxMouseEvent& evt){
     int w,h;
     this->GetSize(&w,&h);
 
-    double dx =  (view.x2-view.x1)*(((double)x)/w -0.5);
-    double dy =  (view.y2-view.y1)*(((double)y)/h -0.5);
+    long double dx =  (view.x2-view.x1)*(((long double)x)/w -0.5L);
+    long double dy =  (view.y2-view.y1)*(((long double)y)/h -0.5L);
 
     view.x1 += dx;
     view.x2 += dx;
     view.y1 += dy;
     view.y2 += dy;
 
-    this->zoom(0.1);
+    this->zoom(0.1L);
 
     BasicDrawPane::Refresh();
 }
 
 void BasicDrawPane::Mousewheel(wxMouseEvent &evt) {
     int rot = evt.GetWheelRotation();
-    double zoomFactor = rot * 0.001+1;
+    long double zoomFactor = rot * 0.001L+1L;
 
     int x, y;
     evt.GetPosition(&x,&y);
 
-
     int w,h;
     this->GetSize(&w,&h);
 
-    double  x_m=Algorithm::map(x,w,view.x1,view.x2),
-            y_m=Algorithm::map(y,h,view.y1,view.y2);
+    long double  x_m=Algorithm::map(x,w,view.x1,view.x2),
+                 y_m=Algorithm::map(y,h,view.y1,view.y2);
 
-    double dx1 = x_m-view.x1;
-    double dx2 = view.x2 - x_m;
+    long double dx1 = x_m-view.x1;
+    long double dx2 = view.x2 - x_m;
 
     dx1*=zoomFactor;
     dx2*=zoomFactor;
 
-    double dy1 = y_m-view.y1;
-    double dy2 = view.y2-y_m;
+    long double dy1 = y_m-view.y1;
+    long double dy2 = view.y2-y_m;
 
     dy1*=zoomFactor;
     dy2*=zoomFactor;
@@ -124,11 +124,10 @@ void BasicDrawPane::Mousewheel(wxMouseEvent &evt) {
     view.y1 = y_m-dy1;
     view.y2 = y_m+dy2;
 
-
    BasicDrawPane::Refresh();
 }
 
-void BasicDrawPane::zoom(double factor) {
+void BasicDrawPane::zoom(long double factor) {
     view.x1 += factor*(view.x2-view.x1);
     view.x2 -= factor*(view.x2-view.x1);
     view.y1 += factor*(view.y2-view.y1);

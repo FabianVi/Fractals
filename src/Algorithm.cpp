@@ -50,11 +50,11 @@ RGB HSVtoRGB(float H, float S,float V){
 }
 
 namespace Algorithm {
-    double map(int point, int pixelWidth, double min, double max){
+    long double map(int point, int pixelWidth, long double min, long double max){
         return (point/(pixelWidth*1.0f)*(max-min)) + min;
     }
 
-    void mandelbrot_calculator(int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView , Vector2x2<double> view, int depth) {
+    void mandelbrot_calculator(int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView , Vector2x2<long double> view, int depth) {
 
         for (int yp = renderView.y1; yp < renderView.y2; ++yp) {
             if(yp<0)
@@ -71,14 +71,14 @@ namespace Algorithm {
                  if(xp>=resolution.x)
                      break;
 
-                double x0 = map(xp, resolution.x, view.x1, view.x2);
-                double y0 = map(yp, resolution.y, view.y1, view.y2);
+                long double x0 = map(xp, resolution.x, view.x1, view.x2);
+                long double y0 = map(yp, resolution.y, view.y1, view.y2);
 
-                double x1 = 0;
-                double y1 = 0;
+                long double x1 = 0;
+                long double y1 = 0;
 
-                double x2=0;
-                double y2=0;
+                long double x2=0;
+                long double y2=0;
 
                 int n = 0;
 
@@ -120,7 +120,7 @@ namespace Algorithm {
                     hue += iterations[i]/(total*1.0f);
                 }
 
-                RGB rgb = HSVtoRGB(20+hue*60,100, iteration_map[y*resolution.x+x]==100? 0 : 100);
+                RGB rgb = HSVtoRGB(20+hue*60,100, iteration_map[y*resolution.x+x]==depth? 0 : 100);
                 image[y*resolution.x*3+x*3] = rgb.R;
                 image[y*resolution.x*3+x*3+1] = rgb.G;
                 image[y*resolution.x*3+x*3+2] = rgb.B;
@@ -129,7 +129,7 @@ namespace Algorithm {
         }
     }
 
-    void Mandelbrot(unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), int depth=100, Vector2x2<double> view = Vector2x2<double>(-2,-1,1,1)) {
+    void Mandelbrot(unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), int depth=100, Vector2x2<long double> view = Vector2x2<long double>(-2,-1,1,1)) {
         ScopedTimer sc("Mandelbrot alg");
         DestinctTimer dt1("Calculating");
         DestinctTimer dt2("Coloring");
