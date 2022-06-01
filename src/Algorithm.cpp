@@ -50,11 +50,98 @@ RGB HSVtoRGB(float H, float S,float V){
 }
 
 namespace Algorithm {
+    /**
+     * This Function can zoom and translate to a given origin (Vector2D) and adapt a 2x2 vector, which represents the canvas size, to this new Framing.
+     * @param canvas Vector2x2 will be translated and zoomed
+     * @param origin The Zoom and Rotation center point
+     * @param zoomFactor The level of zoom e.g. zoom in 0.5 or zoom out 2
+     * @param translation_factor The Coefficient of Translation e.g. 1 if you want the Origin be the center of frame
+     * @return Vector2x2 the new Framing
+     */
+    Vector2x2<long double> zoom(Vector2x2<long double> canvas,Vector2D<long double> origin, long double zoomFactor, long double translation_factor=0.L){
+        long double dx1 = origin.x-canvas.x1;
+        long double dx2 = canvas.x2 - origin.x;
+
+        dx1*=zoomFactor;
+        dx2*=zoomFactor;
+
+        long double dy1 = origin.y-canvas.y1;
+        long double dy2 = canvas.y2-origin.y;
+
+        dy1*=zoomFactor;
+        dy2*=zoomFactor;
+
+        Vector2x2 newCanvas(origin.x-dx1,origin.y-dy1,origin.x+dx2,origin.y+dy2);
+
+        long double dx =  (origin.x-(newCanvas.x1+(newCanvas.x2-newCanvas.x1)/2.0F)) * translation_factor;
+        long double dy =  (origin.y - (newCanvas.y1+(newCanvas.y2-newCanvas.y1)/2.0F)) * translation_factor;
+
+        newCanvas.x1 += dx;
+        newCanvas.x2 += dx;
+        newCanvas.y1 += dy;
+        newCanvas.y2 += dy;
+
+        return newCanvas;
+    }
+
+    /**
+     * Zooms to the center of Frame by the given zoomFactor
+     * @param canvas Vector2x2 will be translated and zoomed
+     * @param zoomFactor The level of zoom e.g. zoom in 0.5 or zoom out 2
+     * @return Vector2x2 the new Framing
+     */
+    Vector2x2<long double> zoom(Vector2x2<long double> canvas, long double zoomFactor){
+        long double dx = (canvas.x2-canvas.x1)/2.0L;
+        long double dy = (canvas.y2-canvas.y1)/2.0L;
+
+        return zoom(canvas, Vector2D(canvas.x1+dx,canvas.y1+dy),zoomFactor,0.0L);
+    }
+
     long double map(int point, int pixelWidth, long double min, long double max){
         return (point/(pixelWidth*1.0f)*(max-min)) + min;
     }
 
-    void mandelbrot_calculator(int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView , Vector2x2<long double> view, int depth) {
+    int mandelbrot(long double x ,long double y , int depth) {
+        long double x1 = 0;
+        long double y1 = 0;
+
+        long double x2=0;
+        long double y2=0;
+
+        int n = 0;
+
+        do {
+            y1 = 2 * x1 * y1 + y;
+            x1 = x2 - y2 + x;
+            x2 = x1 * x1;
+            y2 = y1 * y1;
+
+            n++;
+        } while(x2+y2 <= 4 && n<depth);
+
+        return n;
+    }
+
+    // Z_(n+1) = (|Re(Z_n)| + |Im(Z_n)|j)^2 + c
+    int burningShip (long double x ,long double y , int depth) {
+
+        long double jx = x;
+        long double jy = y;
+
+        int n = 0;
+
+        do {
+            long double xTemp = jx*jx - jy*jy + x;
+            jy = std::abs(2*jx*jy) + y; // abs gibt den absoluten Wert aus
+            jx = xTemp;
+
+            n++;
+        } while(jx+jy <= 4 && n<depth);
+
+        return n;
+    }
+
+    void depth_map (int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView , Vector2x2<long double> view, int depth) {
 
         for (int yp = renderView.y1; yp < renderView.y2; ++yp) {
             if(yp<0)
@@ -63,33 +150,18 @@ namespace Algorithm {
             if(yp>=resolution.y)
                 break;
 
-             for (int xp = renderView.x1; xp < renderView.x2; ++xp) {
+            for (int xp = renderView.x1; xp < renderView.x2; ++xp) {
 
-                 if(xp<0)
-                     continue;
+                if(xp<0)
+                    continue;
 
-                 if(xp>=resolution.x)
-                     break;
+                if(xp>=resolution.x)
+                    break;
 
-                long double x0 = map(xp, resolution.x, view.x1, view.x2);
-                long double y0 = map(yp, resolution.y, view.y1, view.y2);
+                long double x = map(xp, resolution.x, view.x1, view.x2);
+                long double y = map(yp, resolution.y, view.y1, view.y2);
 
-                long double x1 = 0;
-                long double y1 = 0;
-
-                long double x2=0;
-                long double y2=0;
-
-                int n = 0;
-
-                do {
-                    y1 = 2 * x1 * y1 + y0;
-                    x1 = x2 - y2 + x0;
-                    x2 = x1 * x1;
-                    y2 = y1 * y1;
-
-                    n++;
-                } while(x2+y2 <= 4 && n<depth);
+                int n = mandelbrot(x,y,depth);
 
                 iteration_map[xp+yp*resolution.x] = n;
                 iterations[n]+=1;
@@ -97,7 +169,7 @@ namespace Algorithm {
         }
     }
 
-    void mandelbrot_renderer(unsigned char *image,int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView, int depth, int total) {
+    void color_map(unsigned char *image,int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView, int depth, int total) {
 
         for (int y = renderView.y1; y < renderView.y2; ++y) {
             if(y<0)
@@ -129,12 +201,12 @@ namespace Algorithm {
         }
     }
 
-    void Mandelbrot(unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), int depth=100, Vector2x2<long double> view = Vector2x2<long double>(-2,-1,1,1)) {
-        ScopedTimer sc("Mandelbrot alg");
-        DestinctTimer dt1("Calculating");
-        DestinctTimer dt2("Coloring");
+    void Fractal(unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), int depth=100, Vector2x2<long double> view = Vector2x2<long double>(-2,-1,1,1)) {
+        ScopedTimer algo_timer("All Calc/Color");
+        DestinctTimer calculation_timer("Calculating");
+        DestinctTimer coloring_timer("Coloring");
 
-        dt1.start();
+        calculation_timer.start();
         int *iterations = new int[depth+1];
         for(int i=0; i<=depth;i++)
             iterations[i] = 0;
@@ -154,27 +226,27 @@ namespace Algorithm {
         std::vector<std::thread> processes;
 
         for(int i = 1; i<=processor_count;i++)
-            processes.push_back(std::thread(mandelbrot_calculator, iterations,iteration_map, resolution ,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y) ,view, depth));
+            processes.push_back(std::thread(depth_map, iterations,iteration_map, resolution ,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y) ,view, depth));
 
         for(auto &t : processes)
             t.join();
 
-        dt1.stop();
+        calculation_timer.stop();
+
         processes.clear();
 
-
-        dt2.start();
+        coloring_timer.start();
 
         for(int i=0; i<=depth;i++)
             total += iterations[i];
 
         for(int i = 1; i<=processor_count;i++)
-            processes.push_back(std::thread(mandelbrot_renderer, image,iterations,iteration_map,resolution,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y),depth,total));
+            processes.push_back(std::thread(color_map, image,iterations,iteration_map,resolution,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y),depth,total));
 
         for(auto &t : processes)
             t.join();
 
-        dt2.stop();
+        coloring_timer.stop();
 
         delete[] iteration_map;
         delete[] iterations;

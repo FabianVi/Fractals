@@ -1,6 +1,5 @@
 #include <cmath>
 #include <iostream>
-#include <iomanip>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -14,15 +13,8 @@
 #include "Vector.h"
 #include "Algorithm.h"
 
+#define benchmark
 #include "benchmark.h"
-
-#include <boost/math/constants/constants.hpp>
-#include <boost/multiprecision/cpp_dec_float.hpp>
-
-using boost::multiprecision::cpp_dec_float_50;
-
-// https://en.wikipedia.org/wiki/GNU_Multiple_Precision_Arithmetic_Library
-// https://gmplib.org
 
 class BasicDrawPane : public wxPanel
 {
@@ -39,7 +31,7 @@ public:
     void zoom(long double factor);
 };
 
-BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2.0,-1.0,1.0,1.0){
+BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2,-1,1,1){
     Bind(wxEVT_PAINT,&BasicDrawPane::paintEvent,this);
     Bind(wxEVT_LEFT_UP,&BasicDrawPane::OnClick,this);
     Bind(wxEVT_MOUSEWHEEL,&BasicDrawPane::Mousewheel,this);
@@ -53,16 +45,16 @@ BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2.0,-1.0,
 void BasicDrawPane::paintEvent(wxPaintEvent & evt)
 {
     ScopedTimer sc("paintEvent");
-    DestinctTimer dt1("draw img");
+    DestinctTimer draw_timer("draw img");
 
     int w;
     int h;
     this->GetSize(&w,&h);
 
     auto* im_data = (unsigned char*) malloc(w * h * 3 );
-    Algorithm::Mandelbrot(im_data, Vector2D<int>(w , h), 256, view);
+    Algorithm::Fractal(im_data, Vector2D<int>(w , h), 256, view);
 
-    dt1.start();
+    draw_timer.start();
     wxClientDC dc(this);
 
     dc.Clear();
@@ -70,7 +62,7 @@ void BasicDrawPane::paintEvent(wxPaintEvent & evt)
     wxBitmap m_bitmap = wxBitmap(m_image);
 
     dc.DrawBitmap(m_bitmap,0,0,true);
-    dt1.stop();
+    draw_timer.stop();
 }
 
 void BasicDrawPane::OnClick(wxMouseEvent& evt){
@@ -80,15 +72,10 @@ void BasicDrawPane::OnClick(wxMouseEvent& evt){
     int w,h;
     this->GetSize(&w,&h);
 
-    long double dx =  (view.x2-view.x1)*(((long double)x)/w -0.5L);
-    long double dy =  (view.y2-view.y1)*(((long double)y)/h -0.5L);
+    long double  x_m=Algorithm::map(x,w,view.x1,view.x2),
+                 y_m=Algorithm::map(y,h,view.y1,view.y2);
 
-    view.x1 += dx;
-    view.x2 += dx;
-    view.y1 += dy;
-    view.y2 += dy;
-
-    this->zoom(0.1L);
+    view = Algorithm::zoom(view,Vector2D(x_m,y_m) , 0.5, 1.L);
 
     BasicDrawPane::Refresh();
 }
@@ -106,33 +93,9 @@ void BasicDrawPane::Mousewheel(wxMouseEvent &evt) {
     long double  x_m=Algorithm::map(x,w,view.x1,view.x2),
                  y_m=Algorithm::map(y,h,view.y1,view.y2);
 
-    long double dx1 = x_m-view.x1;
-    long double dx2 = view.x2 - x_m;
-
-    dx1*=zoomFactor;
-    dx2*=zoomFactor;
-
-    long double dy1 = y_m-view.y1;
-    long double dy2 = view.y2-y_m;
-
-    dy1*=zoomFactor;
-    dy2*=zoomFactor;
-
-    view.x1 = x_m-dx1;
-    view.x2 = x_m+dx2;
-
-    view.y1 = y_m-dy1;
-    view.y2 = y_m+dy2;
+    view = Algorithm::zoom(view,Vector2D(x_m,y_m) , zoomFactor, 0.L);
 
    BasicDrawPane::Refresh();
-}
-
-void BasicDrawPane::zoom(long double factor) {
-    view.x1 += factor*(view.x2-view.x1);
-    view.x2 -= factor*(view.x2-view.x1);
-    view.y1 += factor*(view.y2-view.y1);
-    view.y2 -= factor*(view.y2-view.y1);
-    std::cout << view;
 }
 
 void BasicDrawPane::HandleKey(wxKeyEvent &evt) {
@@ -166,7 +129,9 @@ class MyFrame : public wxFrame
 public:
     MyFrame();
 private:
-    BasicDrawPane * drawPane;
+    BasicDrawPane* drawPane;
+    wxMenuBar* menubar;
+    wxMenu *subMenu;
 };
 
 MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,400)) {
@@ -176,6 +141,21 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
     sizer->Add(drawPane, 1, wxEXPAND);
     this->SetSizer(sizer);
     this->SetAutoLayout(true);
+
+    menubar = new wxMenuBar;
+    subMenu = new wxMenu;
+
+    subMenu->AppendRadioItem(200, wxT("&Mandelbrot"));
+    subMenu->AppendRadioItem(201, wxT("&Julia Set"));
+    subMenu->AppendRadioItem(202, wxT("&Georgs Gesicht"));
+    menubar->Append(subMenu, wxT("&Fractal Type"));
+
+    //   Connect(wxID_EXIT, wxEVT_COMMAND_MENU_SELECTED,
+    //   wxCommandEventHandler(SimpleMenu::OnQuit));
+
+    Centre();
+
+    SetMenuBar(menubar);
 }
 
 class MyApp : public wxApp

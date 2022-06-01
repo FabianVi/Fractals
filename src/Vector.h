@@ -7,6 +7,7 @@
 
 #include "string.h"
 #include <iostream>
+#include <iomanip>
 
 template <typename T>
 struct Vector2D {
@@ -31,7 +32,7 @@ struct Vector2x2 {
     T y2;
 
     friend std::ostream& operator<< (std::ostream &a, const Vector2x2<T> &b) {
-        a  << "Vector2x2: x1:" << b.x1 << "; y1:" << b.y1 << "\r\n         : x2:" << b.x2 << "; y2:" << b.y2 << "\r\n";
+        a  << std::setprecision (100) << "Vector2x2: (x1,y1,x2,y2) (" << b.x1 << "L," << b.y1 << "L," << b.x2 << "L," << b.y2 << "L)";
         return a;
     };
 };

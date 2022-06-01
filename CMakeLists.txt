@@ -10,6 +10,6 @@ add_subdirectory(libs/boost)
 
 add_executable(${PROJECT_NAME} src/main.cpp src/Algorithm.h src/Algorithm.cpp src/Vector.h src/benchmark.h src/benchmark.cpp)
 
-target_link_libraries(${PROJECT_NAME} wx::net wx::core wx::base Boost::multiprecision)
+target_link_libraries(${PROJECT_NAME} wx::net wx::core wx::base)
 
 target_include_directories(${PROJECT_NAME} PUBLIC wxWidgets)
