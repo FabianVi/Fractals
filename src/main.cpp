@@ -13,8 +13,10 @@
 #include "Vector.h"
 #include "Algorithm.h"
 
-#define benchmark
+
 #include "benchmark.h"
+
+#include "Export.h"
 
 class BasicDrawPane : public wxPanel
 {
@@ -52,7 +54,7 @@ void BasicDrawPane::paintEvent(wxPaintEvent & evt)
     this->GetSize(&w,&h);
 
     auto* im_data = (unsigned char*) malloc(w * h * 3 );
-    Algorithm::Fractal(im_data, Vector2D<int>(w , h), 256, view);
+    Algorithm::Fractal(im_data, Vector2D<int>(w , h), 256 , view);
 
     draw_timer.start();
     wxClientDC dc(this);
@@ -75,8 +77,8 @@ void BasicDrawPane::OnClick(wxMouseEvent& evt){
     long double  x_m=Algorithm::map(x,w,view.x1,view.x2),
                  y_m=Algorithm::map(y,h,view.y1,view.y2);
 
-    view = Algorithm::zoom(view,Vector2D(x_m,y_m) , 0.5, 1.L);
-
+    view = Algorithm::zoom(view,Vector2D(x_m,y_m) , 0.5, .5L);
+    std::cout << view << std::endl;
     BasicDrawPane::Refresh();
 }
 
@@ -120,6 +122,14 @@ void BasicDrawPane::HandleKey(wxKeyEvent &evt) {
             view.x1 += 0.05*(view.x2-view.x1);
             view.x2 += 0.05*(view.x2-view.x1);
             break;
+        case 'R':
+            Export::exportImage(Vector2D(2000*3,2000*2)
+                    , view, 10000
+                    ,"./test.bmp");
+            break;
+        case 'V':
+            Export::exportImages(Vector2D(900*3,900*2),view,Vector2x2<long double>(-1.262730665190335836343092645872587809208198450505733489990234375L,-0.4084175024054830714062731822355800659352098591625690460205078125L,-1.262730665190335839595699163329101111230556853115558624267578125L,-0.40841750240548307352046741858231371224974282085895538330078125L),10000,60,"/Users/georg/FractalsExport/MacRes");
+            break;
     }
     BasicDrawPane::Refresh();
 }
@@ -132,6 +142,7 @@ private:
     BasicDrawPane* drawPane;
     wxMenuBar* menubar;
     wxMenu *subMenu;
+    wxMenu *renderMenu;
 };
 
 MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,400)) {
@@ -144,6 +155,7 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
 
     menubar = new wxMenuBar;
     subMenu = new wxMenu;
+    renderMenu = new wxMenu;
 
     subMenu->AppendRadioItem(200, wxT("&Mandelbrot"));
     subMenu->AppendRadioItem(201, wxT("&Julia Set"));

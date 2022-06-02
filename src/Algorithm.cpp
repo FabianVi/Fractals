@@ -166,6 +166,7 @@ namespace Algorithm {
                 iteration_map[xp+yp*resolution.x] = n;
                 iterations[n]+=1;
             }
+            // std::cout << yp << " : finished " << std::endl;
         }
     }
 
@@ -216,6 +217,7 @@ namespace Algorithm {
         uint64_t total = 0;
 
         int processor_count = std::thread::hardware_concurrency();
+        // std::cout << "count : " << processor_count << std::endl;
         // int processor_count = 1;
 
         if(processor_count==0)

@@ -1,4 +1,5 @@
 builds/*
+cmake-build-debug/*
 !.gitkeep
 .DS_Store
 .idea

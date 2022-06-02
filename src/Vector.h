@@ -17,7 +17,7 @@ struct Vector2D {
     T y;
 
     friend std::ostream& operator<< (std::ostream &a, const Vector2D<T> &b) {
-        a  << "Vector2x2: x1:" << b.x1 << "; y1:" << b.y1 << "\r\n";
+        a  << "Vector2x2: x:" << b.x << "; y:" << b.y << "\r\n";
         return a;
     };
 };
