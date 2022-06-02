@@ -1,5 +1,8 @@
-builds/*
-cmake-build-debug/*
+builds/*/*
 !.gitkeep
 .DS_Store
 .idea
+
+*.bmp
+*.png
+*.mp4

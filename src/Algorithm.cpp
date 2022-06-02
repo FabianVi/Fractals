@@ -161,7 +161,7 @@ namespace Algorithm {
                 long double x = map(xp, resolution.x, view.x1, view.x2);
                 long double y = map(yp, resolution.y, view.y1, view.y2);
 
-                int n = mandelbrot(x,y,depth);
+                int n = burningShip(x,y,depth);
 
                 iteration_map[xp+yp*resolution.x] = n;
                 iterations[n]+=1;

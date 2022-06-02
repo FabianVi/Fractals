@@ -1,0 +1,1 @@
+ffmpeg -r 60 -f image2 -i ./builds/Images/%d.bmp -vcodec libx264 -crf 1  -pix_fmt yuv420p ./builds/out.mp4

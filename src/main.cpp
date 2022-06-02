@@ -54,7 +54,7 @@ void BasicDrawPane::paintEvent(wxPaintEvent & evt)
     this->GetSize(&w,&h);
 
     auto* im_data = (unsigned char*) malloc(w * h * 3 );
-    Algorithm::Fractal(im_data, Vector2D<int>(w , h), 256 , view);
+    Algorithm::Fractal(im_data, Vector2D<int>(w , h), 1000 , view);
 
     draw_timer.start();
     wxClientDC dc(this);
@@ -125,10 +125,10 @@ void BasicDrawPane::HandleKey(wxKeyEvent &evt) {
         case 'R':
             Export::exportImage(Vector2D(2000*3,2000*2)
                     , view, 10000
-                    ,"./test.bmp");
+                    ,"../test.bmp");
             break;
         case 'V':
-            Export::exportImages(Vector2D(900*3,900*2),view,Vector2x2<long double>(-1.262730665190335836343092645872587809208198450505733489990234375L,-0.4084175024054830714062731822355800659352098591625690460205078125L,-1.262730665190335839595699163329101111230556853115558624267578125L,-0.40841750240548307352046741858231371224974282085895538330078125L),10000,60,"/Users/georg/FractalsExport/MacRes");
+            Export::exportImages(Vector2D(900*3,900*2),view,Vector2x2<long double>(-1.9537185760276644789536215629510707003646530210971832275390625L,-2.3630621894364577103364029214455262206673324953953851945698261260986328125e-05L,-1.953718576027664449897003340339551868964917957782745361328125L,-2.363062189434091442072803513209204584466505139062064699828624725341796875e-05L),10000,60 * 60,"../Images");
             break;
     }
     BasicDrawPane::Refresh();
