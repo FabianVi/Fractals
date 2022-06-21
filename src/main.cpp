@@ -31,9 +31,10 @@ public:
     void HandleKey(wxKeyEvent& evt);
 
     void zoom(long double factor);
+    Algorithm::Algo o;
 };
 
-BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2,-1,1,1){
+BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2,-1,1,1), o(Algorithm::Algo::Mandelbrot){
     Bind(wxEVT_PAINT,&BasicDrawPane::paintEvent,this);
     Bind(wxEVT_LEFT_UP,&BasicDrawPane::OnClick,this);
     Bind(wxEVT_MOUSEWHEEL,&BasicDrawPane::Mousewheel,this);
@@ -54,7 +55,7 @@ void BasicDrawPane::paintEvent(wxPaintEvent & evt)
     this->GetSize(&w,&h);
 
     auto* im_data = (unsigned char*) malloc(w * h * 3 );
-    Algorithm::Fractal(im_data, Vector2D<int>(w , h), 1000 , view);
+    Algorithm::Fractal(o,im_data, Vector2D<int>(w , h), 200 , view);
 
     draw_timer.start();
     wxClientDC dc(this);
@@ -123,12 +124,12 @@ void BasicDrawPane::HandleKey(wxKeyEvent &evt) {
             view.x2 += 0.05*(view.x2-view.x1);
             break;
         case 'R':
-            Export::exportImage(Vector2D(2000*3,2000*2)
+            Export::exportImage(o,Vector2D(2000*3,2000*2)
                     , view, 10000
                     ,"../test.bmp");
             break;
         case 'V':
-            Export::exportImages(Vector2D(900*3,900*2),view,Vector2x2<long double>(-1.9537185760276644789536215629510707003646530210971832275390625L,-2.3630621894364577103364029214455262206673324953953851945698261260986328125e-05L,-1.953718576027664449897003340339551868964917957782745361328125L,-2.363062189434091442072803513209204584466505139062064699828624725341796875e-05L),10000,60 * 60,"../Images");
+            Export::exportImages(o,Vector2D(900*3,900*2),view,Vector2x2<long double>(-1.9537185760276644789536215629510707003646530210971832275390625L,-2.3630621894364577103364029214455262206673324953953851945698261260986328125e-05L,-1.953718576027664449897003340339551868964917957782745361328125L,-2.363062189434091442072803513209204584466505139062064699828624725341796875e-05L),10000,60 * 60,"../Images");
             break;
     }
     BasicDrawPane::Refresh();
@@ -143,6 +144,8 @@ private:
     wxMenuBar* menubar;
     wxMenu *subMenu;
     wxMenu *renderMenu;
+    void OnMandelbrot(wxCommandEvent& WXUNUSED(event));
+    void OnBurningShip(wxCommandEvent& WXUNUSED(event));
 };
 
 MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,400)) {
@@ -158,16 +161,27 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
     renderMenu = new wxMenu;
 
     subMenu->AppendRadioItem(200, wxT("&Mandelbrot"));
-    subMenu->AppendRadioItem(201, wxT("&Julia Set"));
-    subMenu->AppendRadioItem(202, wxT("&Georgs Gesicht"));
+    subMenu->AppendRadioItem(201, wxT("&Burning Ship"));
     menubar->Append(subMenu, wxT("&Fractal Type"));
 
-    //   Connect(wxID_EXIT, wxEVT_COMMAND_MENU_SELECTED,
-    //   wxCommandEventHandler(SimpleMenu::OnQuit));
+    Connect(200, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnMandelbrot));
+    Connect(201, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnBurningShip));
 
     Centre();
 
     SetMenuBar(menubar);
+}
+
+void MyFrame::OnMandelbrot(wxCommandEvent& WXUNUSED(event))
+{
+    drawPane->o = Algorithm::Algo::Mandelbrot;
+    drawPane->Refresh();
+}
+
+void MyFrame::OnBurningShip(wxCommandEvent& WXUNUSED(event))
+{
+    drawPane->o = Algorithm::Algo::BurningShip;
+    drawPane->Refresh();
 }
 
 class MyApp : public wxApp

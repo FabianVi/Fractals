@@ -50,6 +50,11 @@ RGB HSVtoRGB(float H, float S,float V){
 }
 
 namespace Algorithm {
+    enum Algo {
+        Mandelbrot,
+        BurningShip
+    };
+
     /**
      * This Function can zoom and translate to a given origin (Vector2D) and adapt a 2x2 vector, which represents the canvas size, to this new Framing.
      * @param canvas Vector2x2 will be translated and zoomed
@@ -141,7 +146,7 @@ namespace Algorithm {
         return n;
     }
 
-    void depth_map (int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView , Vector2x2<long double> view, int depth) {
+    void depth_map (Algo o,int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView , Vector2x2<long double> view, int depth) {
 
         for (int yp = renderView.y1; yp < renderView.y2; ++yp) {
             if(yp<0)
@@ -161,7 +166,18 @@ namespace Algorithm {
                 long double x = map(xp, resolution.x, view.x1, view.x2);
                 long double y = map(yp, resolution.y, view.y1, view.y2);
 
-                int n = burningShip(x,y,depth);
+                int n;
+
+                switch (o) {
+                    case Algo::Mandelbrot:
+                        n = mandelbrot(x,y,depth);
+                        break;
+                    case Algo::BurningShip:
+                        n = burningShip(x,y,depth);
+                        break;
+                    default:
+                        break;
+                }
 
                 iteration_map[xp+yp*resolution.x] = n;
                 iterations[n]+=1;
@@ -202,7 +218,7 @@ namespace Algorithm {
         }
     }
 
-    void Fractal(unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), int depth=100, Vector2x2<long double> view = Vector2x2<long double>(-2,-1,1,1)) {
+    void Fractal(Algo o, unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), int depth=100, Vector2x2<long double> view = Vector2x2<long double>(-2,-1,1,1)) {
         ScopedTimer algo_timer("All Calc/Color");
         DestinctTimer calculation_timer("Calculating");
         DestinctTimer coloring_timer("Coloring");
@@ -228,7 +244,7 @@ namespace Algorithm {
         std::vector<std::thread> processes;
 
         for(int i = 1; i<=processor_count;i++)
-            processes.push_back(std::thread(depth_map, iterations,iteration_map, resolution ,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y) ,view, depth));
+            processes.push_back(std::thread(depth_map,o, iterations,iteration_map, resolution ,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y) ,view, depth));
 
         for(auto &t : processes)
             t.join();
