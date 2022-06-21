@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 configure_file(src/Config.h.in src/Config.h)
 
 add_subdirectory(libs/wxWidgets)
-add_subdirectory(libs/boost)
 
 add_executable(${PROJECT_NAME} src/main.cpp src/Algorithm.h src/Algorithm.cpp src/Vector.h src/benchmark.h src/benchmark.cpp src/Export.cpp src/Export.h)
 
