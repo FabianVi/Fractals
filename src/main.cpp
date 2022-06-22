@@ -26,6 +26,12 @@ public:
     Vector2x2<long double> start;
     Vector2x2<long double> end;
 
+    Vector2D<int> photoRes;
+    Vector2D<int> videoRes;
+
+    int photoDepth;
+    int videoDepth;
+
     explicit BasicDrawPane(wxFrame* parent);
     void paintEvent(wxPaintEvent & evt);
     void OnClick(wxMouseEvent& evt);
@@ -45,7 +51,11 @@ BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent),
                                                 start(view),
                                                 end(Vector2x2<long double>(0,0,0,0)),
                                                 depth(100),
-                                                colouring(Vector2D<double>(20,60))
+                                                colouring(Vector2D<double>(20,60)),
+                                                photoRes(Vector2D<int>(600,400)),
+                                                videoRes(Vector2D<int>(600,400)),
+                                                videoDepth(100),
+                                                photoDepth(100)
 {
     Bind(wxEVT_PAINT,&BasicDrawPane::paintEvent,this);
     Bind(wxEVT_LEFT_UP,&BasicDrawPane::OnClick,this);
@@ -149,8 +159,15 @@ private:
     wxMenuBar* menubar;
 
     wxMenu *typeMenu;
+
     wxMenu *photoMenu;
+    wxMenu *photoSubResMenu;
+    wxMenu *photoSubDepthMenu;
+
     wxMenu *videoMenu;
+    wxMenu *videoSubResMenu;
+    wxMenu *videoSubDepthMenu;
+
     wxMenu *colourPalletMenu;
     wxMenu *propertyMenu;
 
@@ -165,9 +182,14 @@ private:
     void OnSetDepth(wxCommandEvent& WXUNUSED(event));
 
     void OnRenderPhoto(wxCommandEvent& WXUNUSED(event));
+    void OnPhotoRes(wxCommandEvent& event);
+    void OnPhotoDepth(wxCommandEvent& event);
+
     void OnSetStart(wxCommandEvent& WXUNUSED(event));
     void OnSetEnd(wxCommandEvent& WXUNUSED(event));
     void OnRenderVideo(wxCommandEvent& WXUNUSED(event));
+    void OnVideoRes(wxCommandEvent& event);
+    void OnVideoDepth(wxCommandEvent& event);
 };
 
 MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,400)) {
@@ -184,7 +206,11 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
     colourPalletMenu = new wxMenu;
     propertyMenu = new wxMenu;
     photoMenu = new wxMenu;
+    photoSubResMenu = new wxMenu;
+    photoSubDepthMenu = new wxMenu;
     videoMenu = new wxMenu;
+    videoSubResMenu = new wxMenu;
+    videoSubDepthMenu = new wxMenu;
 
     typeMenu->AppendRadioItem(200, wxT("&Mandelbrot"));
     typeMenu->AppendRadioItem(201, wxT("&Burning Ship"));
@@ -206,13 +232,45 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
     Connect(303, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnColouringFancy));
 
 
+    photoSubResMenu->AppendRadioItem(451,"&600x400");
+    photoSubResMenu->AppendRadioItem(452,"&1200x800");
+    photoSubResMenu->AppendRadioItem(453,"&2400x1600");
+
+    photoSubDepthMenu->AppendRadioItem(461,"&100");
+    photoSubDepthMenu->AppendRadioItem(462,"&256");
+    photoSubDepthMenu->AppendRadioItem(463,"&1000");
+    photoSubDepthMenu->AppendRadioItem(464,"&10000");
+    photoSubDepthMenu->AppendRadioItem(465,"&100000");
+
+    photoMenu->Append(450,"&Resolution",photoSubResMenu);
+    photoMenu->Append(460,"&Depth",photoSubDepthMenu);
     photoMenu->Append(400, wxT("Render Photo \tR"));
     menubar->Append(photoMenu,wxT("&Photo"));
-    Connect(400, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderPhoto));
 
+    Connect(400, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderPhoto));
+    Connect(451, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnPhotoRes));
+    Connect(452, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnPhotoRes));
+    Connect(453, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnPhotoRes));
+    Connect(461, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnPhotoDepth));
+    Connect(462, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnPhotoDepth));
+    Connect(463, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnPhotoDepth));
+    Connect(464, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnPhotoDepth));
+    Connect(465, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnPhotoDepth));
+
+    videoSubResMenu->AppendRadioItem(551,"&600x400");
+    videoSubResMenu->AppendRadioItem(552,"&1200x800");
+    videoSubResMenu->AppendRadioItem(553,"&2400x1600");
+
+    videoSubDepthMenu->AppendRadioItem(561,"&100");
+    videoSubDepthMenu->AppendRadioItem(562,"&256");
+    videoSubDepthMenu->AppendRadioItem(563,"&1000");
+    videoSubDepthMenu->AppendRadioItem(564,"&10000");
+    videoSubDepthMenu->AppendRadioItem(565,"&100000");
 
     videoMenu->Append(500, wxT("&Set Start"));
     videoMenu->Append(501, wxT("&Set End"));
+    videoMenu->Append(550,"&Resolution",videoSubResMenu);
+    videoMenu->Append(560,"&Depth",videoSubDepthMenu);
     videoMenu->Append(502, wxT("&Render Video \tV"));
     menubar->Append(videoMenu, wxT("&Video"));
 
@@ -220,6 +278,14 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
     Connect(500, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetStart));
     Connect(501, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetEnd));
     Connect(502, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderVideo));
+    Connect(551, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoRes));
+    Connect(552, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoRes));
+    Connect(553, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoRes));
+    Connect(561, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoDepth));
+    Connect(562, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoDepth));
+    Connect(563, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoDepth));
+    Connect(564, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoDepth));
+    Connect(565, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoDepth));
 
 
     propertyMenu->Append(600, wxT("&set Depth"));
@@ -286,9 +352,49 @@ void MyFrame::OnSetDepth(wxCommandEvent& WXUNUSED(event)) {
 
 void MyFrame::OnRenderPhoto(wxCommandEvent& WXUNUSED(event))
 {
-    int w, h;
-    drawPane->GetSize(&w,&h);
-    Export::exportImage(drawPane->o,Vector2D<int>(w,h),drawPane->view,drawPane->depth,"./export.bmp", drawPane->colouring);
+    Export::exportImage(drawPane->o,drawPane->photoRes,drawPane->view,drawPane->photoDepth,"./export.bmp", drawPane->colouring);
+}
+
+void MyFrame::OnPhotoRes(wxCommandEvent &event) {
+    switch (event.GetId()) {
+        case 451:
+            drawPane->photoRes = Vector2D<int>(600,400);
+            std::cout << "600x400" << std::endl;
+            break;
+        case 452:
+            drawPane->photoRes = Vector2D<int>(1200,800);
+            std::cout << "1200x800" << std::endl;
+            break;
+        case 453:
+            drawPane->photoRes = Vector2D<int>(2400,1600);
+            std::cout << "2400x1600" << std::endl;
+            break;
+    }
+}
+
+void MyFrame::OnPhotoDepth(wxCommandEvent &event) {
+    switch (event.GetId()) {
+        case 461:
+            drawPane->photoDepth = 100;
+            std::cout << "100" << std::endl;
+            break;
+        case 462:
+            drawPane->photoDepth = 256;
+            std::cout << "256" << std::endl;
+            break;
+        case 463:
+            drawPane->photoDepth = 1000;
+            std::cout << "1000" << std::endl;
+            break;
+        case 464:
+            drawPane->photoDepth = 10000;
+            std::cout << "10000" << std::endl;
+            break;
+        case 465:
+            drawPane->photoDepth = 100000;
+            std::cout << "100000" << std::endl;
+            break;
+    }
 }
 
 void MyFrame::OnSetStart(wxCommandEvent& WXUNUSED(event))
@@ -301,11 +407,51 @@ void MyFrame::OnSetEnd(wxCommandEvent& WXUNUSED(event))
     drawPane->end = drawPane->view;
 }
 
+void MyFrame::OnVideoRes(wxCommandEvent &event) {
+    switch (event.GetId()) {
+        case 551:
+            drawPane->videoRes = Vector2D<int>(600,400);
+            std::cout << "600x400" << std::endl;
+            break;
+        case 552:
+            drawPane->videoRes = Vector2D<int>(1200,800);
+            std::cout << "1200x800" << std::endl;
+            break;
+        case 553:
+            drawPane->videoRes = Vector2D<int>(2400,1600);
+            std::cout << "2400x1600" << std::endl;
+            break;
+    }
+}
+
+void MyFrame::OnVideoDepth(wxCommandEvent &event) {
+    switch (event.GetId()) {
+        case 561:
+            drawPane->videoDepth = 100;
+            std::cout << "100" << std::endl;
+            break;
+        case 562:
+            drawPane->videoDepth = 256;
+            std::cout << "256" << std::endl;
+            break;
+        case 563:
+            drawPane->videoDepth = 1000;
+            std::cout << "1000" << std::endl;
+            break;
+        case 564:
+            drawPane->videoDepth = 10000;
+            std::cout << "10000" << std::endl;
+            break;
+        case 565:
+            drawPane->videoDepth = 100000;
+            std::cout << "100000" << std::endl;
+            break;
+    }
+}
+
 void MyFrame::OnRenderVideo(wxCommandEvent& WXUNUSED(event))
 {
-    int w, h;
-    drawPane->GetSize(&w,&h);
-    Export::exportImages(drawPane->o,Vector2D<int>(w,h),drawPane->start,drawPane->end,drawPane->depth,10,"../Images",drawPane->colouring);
+    Export::exportImages(drawPane->o,drawPane->videoRes,drawPane->start,drawPane->end,drawPane->videoDepth,10,"../Images",drawPane->colouring);
 }
 
 class MyApp : public wxApp
