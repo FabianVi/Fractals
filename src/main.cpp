@@ -20,9 +20,11 @@
 
 class BasicDrawPane : public wxPanel
 {
-private:
-    Vector2x2<long double> view;
 public:
+    Vector2x2<long double> view;
+    Vector2x2<long double> start;
+    Vector2x2<long double> end;
+
     explicit BasicDrawPane(wxFrame* parent);
     void paintEvent(wxPaintEvent & evt);
     void OnClick(wxMouseEvent& evt);
@@ -34,7 +36,7 @@ public:
     Algorithm::Algo o;
 };
 
-BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2,-1,1,1), o(Algorithm::Algo::Mandelbrot){
+BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2,-1,1,1), start(view), end(Vector2x2<long double>(-1.9537185760276644789536215629510707003646530210971832275390625L,-2.3630621894364577103364029214455262206673324953953851945698261260986328125e-05L,-1.953718576027664449897003340339551868964917957782745361328125L,-2.363062189434091442072803513209204584466505139062064699828624725341796875e-05L)), o(Algorithm::Algo::Mandelbrot){
     Bind(wxEVT_PAINT,&BasicDrawPane::paintEvent,this);
     Bind(wxEVT_LEFT_UP,&BasicDrawPane::OnClick,this);
     Bind(wxEVT_MOUSEWHEEL,&BasicDrawPane::Mousewheel,this);
@@ -142,10 +144,16 @@ public:
 private:
     BasicDrawPane* drawPane;
     wxMenuBar* menubar;
-    wxMenu *subMenu;
-    wxMenu *renderMenu;
+    wxMenu *typeMenu;
+    wxMenu *photoMenu;
+    wxMenu *videoMenu;
+
     void OnMandelbrot(wxCommandEvent& WXUNUSED(event));
     void OnBurningShip(wxCommandEvent& WXUNUSED(event));
+    void OnRenderPhoto(wxCommandEvent& WXUNUSED(event));
+    void OnSetStart(wxCommandEvent& WXUNUSED(event));
+    void OnSetEnd(wxCommandEvent& WXUNUSED(event));
+    void OnRenderVideo(wxCommandEvent& WXUNUSED(event));
 };
 
 MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,400)) {
@@ -157,15 +165,30 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
     this->SetAutoLayout(true);
 
     menubar = new wxMenuBar;
-    subMenu = new wxMenu;
-    renderMenu = new wxMenu;
 
-    subMenu->AppendRadioItem(200, wxT("&Mandelbrot"));
-    subMenu->AppendRadioItem(201, wxT("&Burning Ship"));
-    menubar->Append(subMenu, wxT("&Fractal Type"));
+    typeMenu = new wxMenu;
+    photoMenu = new wxMenu;
+    videoMenu = new wxMenu;
+
+    typeMenu->AppendRadioItem(200, wxT("&Mandelbrot"));
+    typeMenu->AppendRadioItem(201, wxT("&Burning Ship"));
+    menubar->Append(typeMenu, wxT("&Fractal Type"));
+
+    photoMenu->Append(300, wxT("Render Photo"));
+    menubar->Append(photoMenu,wxT("&Photo"));
+
+    videoMenu->Append(400, wxT("&Set Start"));
+    videoMenu->Append(401, wxT("&Set End"));
+    videoMenu->Append(402, wxT("&Render Video"));
+    menubar->Append(videoMenu, wxT("&Video"));
+
 
     Connect(200, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnMandelbrot));
     Connect(201, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnBurningShip));
+    Connect(300, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderPhoto));
+    Connect(400, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetStart));
+    Connect(401, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetEnd));
+    Connect(402, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderVideo));
 
     Centre();
 
@@ -182,6 +205,30 @@ void MyFrame::OnBurningShip(wxCommandEvent& WXUNUSED(event))
 {
     drawPane->o = Algorithm::Algo::BurningShip;
     drawPane->Refresh();
+}
+
+void MyFrame::OnRenderPhoto(wxCommandEvent& WXUNUSED(event))
+{
+    int w, h;
+    drawPane->GetSize(&w,&h);
+    Export::exportImage(drawPane->o,Vector2D<int>(w,h),drawPane->view,10000,"./export.bmp");
+}
+
+void MyFrame::OnSetStart(wxCommandEvent& WXUNUSED(event))
+{
+    drawPane->start = drawPane->view;
+}
+
+void MyFrame::OnSetEnd(wxCommandEvent& WXUNUSED(event))
+{
+    drawPane->end = drawPane->view;
+}
+
+void MyFrame::OnRenderVideo(wxCommandEvent& WXUNUSED(event))
+{
+    int w, h;
+    drawPane->GetSize(&w,&h);
+    Export::exportImages(drawPane->o,Vector2D<int>(w,h),drawPane->start,drawPane->end,10000,10,"../Images");
 }
 
 class MyApp : public wxApp
