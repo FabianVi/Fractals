@@ -21,9 +21,11 @@
 
 class BasicDrawPane : public wxPanel
 {
-private:
-    Vector2x2<long double> view;
 public:
+    Vector2x2<long double> view;
+    Vector2x2<long double> start;
+    Vector2x2<long double> end;
+
     explicit BasicDrawPane(wxFrame* parent);
     void paintEvent(wxPaintEvent & evt);
     void OnClick(wxMouseEvent& evt);
@@ -37,7 +39,14 @@ public:
     int depth;
 };
 
-BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2,-1,1,1), o(Algorithm::Algo::Mandelbrot), colouring(Vector2D<double>(20,60)) , depth(100){
+BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent),
+                                                o(Algorithm::Algo::Mandelbrot),
+                                                view(-2,-1,1,1),
+                                                start(view),
+                                                end(Vector2x2<long double>(0,0,0,0)),
+                                                depth(100),
+                                                colouring(Vector2D<double>(20,60))
+{
     Bind(wxEVT_PAINT,&BasicDrawPane::paintEvent,this);
     Bind(wxEVT_LEFT_UP,&BasicDrawPane::OnClick,this);
     Bind(wxEVT_MOUSEWHEEL,&BasicDrawPane::Mousewheel,this);
@@ -126,14 +135,6 @@ void BasicDrawPane::HandleKey(wxKeyEvent &evt) {
             view.x1 += 0.05*(view.x2-view.x1);
             view.x2 += 0.05*(view.x2-view.x1);
             break;
-        case 'R':
-            Export::exportImage(o,Vector2D(2000*3,2000*2)
-                    , view, 10000
-                    ,"../test.bmp",colouring);
-            break;
-        case 'V':
-            Export::exportImages(o,Vector2D(900*3,900*2),view,Vector2x2<long double>(-1.9537185760276644789536215629510707003646530210971832275390625L,-2.3630621894364577103364029214455262206673324953953851945698261260986328125e-05L,-1.953718576027664449897003340339551868964917957782745361328125L,-2.363062189434091442072803513209204584466505139062064699828624725341796875e-05L),10000,60 * 60,"../Images",colouring);
-            break;
     }
     BasicDrawPane::Refresh();
 }
@@ -144,37 +145,50 @@ public:
     MyFrame();
 private:
     BasicDrawPane* drawPane;
+
     wxMenuBar* menubar;
-    wxMenu *subMenu;
-    wxMenu *renderMenu;
+
+    wxMenu *typeMenu;
+    wxMenu *photoMenu;
+    wxMenu *videoMenu;
     wxMenu *colourPalletMenu;
     wxMenu *propertyMenu;
+
     void OnMandelbrot(wxCommandEvent& WXUNUSED(event));
     void OnBurningShip(wxCommandEvent& WXUNUSED(event));
+
     void OnColouringDefault(wxCommandEvent& WXUNUSED(event));
     void OnColouringDark(wxCommandEvent& WXUNUSED(event));
     void OnColouringLight(wxCommandEvent& WXUNUSED(event));
     void OnColouringFancy(wxCommandEvent& WXUNUSED(event));
+
     void OnSetDepth(wxCommandEvent& WXUNUSED(event));
+
+    void OnRenderPhoto(wxCommandEvent& WXUNUSED(event));
+    void OnSetStart(wxCommandEvent& WXUNUSED(event));
+    void OnSetEnd(wxCommandEvent& WXUNUSED(event));
+    void OnRenderVideo(wxCommandEvent& WXUNUSED(event));
 };
 
 MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,400)) {
+
     auto* sizer = new wxBoxSizer(wxHORIZONTAL);
     drawPane = new BasicDrawPane( (wxFrame*) this);
-
     sizer->Add(drawPane, 1, wxEXPAND);
     this->SetSizer(sizer);
     this->SetAutoLayout(true);
 
     menubar = new wxMenuBar;
-    subMenu = new wxMenu;
-    colourPalletMenu = new wxMenu;
-    renderMenu = new wxMenu;
-    propertyMenu = new wxMenu;
 
-    subMenu->AppendRadioItem(200, wxT("&Mandelbrot"));
-    subMenu->AppendRadioItem(201, wxT("&Burning Ship"));
-    menubar->Append(subMenu, wxT("&Fractal Type"));
+    typeMenu = new wxMenu;
+    colourPalletMenu = new wxMenu;
+    propertyMenu = new wxMenu;
+    photoMenu = new wxMenu;
+    videoMenu = new wxMenu;
+
+    typeMenu->AppendRadioItem(200, wxT("&Mandelbrot"));
+    typeMenu->AppendRadioItem(201, wxT("&Burning Ship"));
+    menubar->Append(typeMenu, wxT("&Fractal Type"));
 
     Connect(200, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnMandelbrot));
     Connect(201, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnBurningShip));
@@ -192,6 +206,22 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
     Connect(303, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnColouringFancy));
 
 
+    photoMenu->Append(300, wxT("Render Photo \tR"));
+    menubar->Append(photoMenu,wxT("&Photo"));
+    Connect(300, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderPhoto));
+
+
+    videoMenu->Append(400, wxT("&Set Start"));
+    videoMenu->Append(401, wxT("&Set End"));
+    videoMenu->Append(402, wxT("&Render Video \tV"));
+    menubar->Append(videoMenu, wxT("&Video"));
+
+
+    Connect(400, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetStart));
+    Connect(401, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetEnd));
+    Connect(402, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderVideo));
+
+
     propertyMenu->Append(400, wxT("&set Depth"));
     menubar->Append(propertyMenu, wxT("&Properties"));
 
@@ -199,7 +229,6 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
 
 
     Centre();
-
     SetMenuBar(menubar);
 }
 
@@ -243,17 +272,40 @@ void MyFrame::OnColouringFancy(wxCommandEvent& WXUNUSED(event))
     drawPane->Refresh();
 }
 
-void MyFrame::OnSetDepth(wxCommandEvent& WXUNUSED(event))
-{
+void MyFrame::OnSetDepth(wxCommandEvent& WXUNUSED(event)) {
     drawPane->depth = wxGetNumberFromUser(
-    wxString("Enter Depth value"),
-    wxString("Depth:"),
-    wxString("Depth value"),
-    265,
-    1,10000
+            wxString("Enter Depth value"),
+            wxString("Depth:"),
+            wxString("Depth value"),
+            265,
+            1, 10000
     );
 
     drawPane->Refresh();
+}
+
+void MyFrame::OnRenderPhoto(wxCommandEvent& WXUNUSED(event))
+{
+    int w, h;
+    drawPane->GetSize(&w,&h);
+    Export::exportImage(drawPane->o,Vector2D<int>(w,h),drawPane->view,drawPane->depth,"./export.bmp", drawPane->colouring);
+}
+
+void MyFrame::OnSetStart(wxCommandEvent& WXUNUSED(event))
+{
+    drawPane->start = drawPane->view;
+}
+
+void MyFrame::OnSetEnd(wxCommandEvent& WXUNUSED(event))
+{
+    drawPane->end = drawPane->view;
+}
+
+void MyFrame::OnRenderVideo(wxCommandEvent& WXUNUSED(event))
+{
+    int w, h;
+    drawPane->GetSize(&w,&h);
+    Export::exportImages(drawPane->o,Vector2D<int>(w,h),drawPane->start,drawPane->end,drawPane->depth,10,"../Images",drawPane->colouring);
 }
 
 class MyApp : public wxApp
