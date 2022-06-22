@@ -13,8 +13,8 @@
 
 namespace Export {
 
-    void exportImage(Algorithm::Algo o,Vector2D<int> resolution, Vector2x2<long double> view, int depth, wxString filename);
-    void exportImages(Algorithm::Algo o,Vector2D<int> resolution, Vector2x2<long double> viewStart, Vector2x2<long double> viewEnd, int depth,int nrOfFrames, wxString path);
+    void exportImage(Algorithm::Algo o,Vector2D<int> resolution, Vector2x2<long double> view, int depth, wxString filename,Vector2D<double> colouring);
+    void exportImages(Algorithm::Algo o,Vector2D<int> resolution, Vector2x2<long double> viewStart, Vector2x2<long double> viewEnd, int depth,int nrOfFrames, wxString path,Vector2D<double> colouring);
 };
 
 

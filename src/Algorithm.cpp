@@ -186,7 +186,7 @@ namespace Algorithm {
         }
     }
 
-    void color_map(unsigned char *image,int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView, int depth, int total) {
+    void color_map(unsigned char *image,int *iterations, int *iteration_map, Vector2D<int> resolution , Vector2x2<int> renderView, int depth, int total, Vector2D<double> colouring) {
 
         for (int y = renderView.y1; y < renderView.y2; ++y) {
             if(y<0)
@@ -209,7 +209,7 @@ namespace Algorithm {
                     hue += iterations[i]/(total*1.0f);
                 }
 
-                RGB rgb = HSVtoRGB(20+hue*60,100, iteration_map[y*resolution.x+x]==depth? 0 : 100);
+                RGB rgb = HSVtoRGB(colouring.x+hue*colouring.y,100, iteration_map[y*resolution.x+x]==depth? 0 : 100);
                 image[y*resolution.x*3+x*3] = rgb.R;
                 image[y*resolution.x*3+x*3+1] = rgb.G;
                 image[y*resolution.x*3+x*3+2] = rgb.B;
@@ -218,7 +218,7 @@ namespace Algorithm {
         }
     }
 
-    void Fractal(Algo o, unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), int depth=100, Vector2x2<long double> view = Vector2x2<long double>(-2,-1,1,1)) {
+    void Fractal(Algo o, unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), int depth=100, Vector2x2<long double> view = Vector2x2<long double>(-2,-1,1,1),Vector2D<double> colouring = Vector2D<double>(20,60)) {
         ScopedTimer algo_timer("All Calc/Color");
         DestinctTimer calculation_timer("Calculating");
         DestinctTimer coloring_timer("Coloring");
@@ -259,7 +259,7 @@ namespace Algorithm {
             total += iterations[i];
 
         for(int i = 1; i<=processor_count;i++)
-            processes.push_back(std::thread(color_map, image,iterations,iteration_map,resolution,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y),depth,total));
+            processes.push_back(std::thread(color_map, image,iterations,iteration_map,resolution,Vector2x2<int>(int(width_fraction*(i-1))-1,0,int(width_fraction*i)+1,resolution.y),depth,total,colouring));
 
         for(auto &t : processes)
             t.join();

@@ -7,6 +7,7 @@
 #endif
 
 #include <wx/gdicmn.h>
+#include <wx/numdlg.h>
 
 #include "Config.h.in"
 
@@ -32,9 +33,11 @@ public:
 
     void zoom(long double factor);
     Algorithm::Algo o;
+    Vector2D<double> colouring;
+    int depth;
 };
 
-BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2,-1,1,1), o(Algorithm::Algo::Mandelbrot){
+BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent), view(-2,-1,1,1), o(Algorithm::Algo::Mandelbrot), colouring(Vector2D<double>(20,60)) , depth(100){
     Bind(wxEVT_PAINT,&BasicDrawPane::paintEvent,this);
     Bind(wxEVT_LEFT_UP,&BasicDrawPane::OnClick,this);
     Bind(wxEVT_MOUSEWHEEL,&BasicDrawPane::Mousewheel,this);
@@ -55,7 +58,7 @@ void BasicDrawPane::paintEvent(wxPaintEvent & evt)
     this->GetSize(&w,&h);
 
     auto* im_data = (unsigned char*) malloc(w * h * 3 );
-    Algorithm::Fractal(o,im_data, Vector2D<int>(w , h), 200 , view);
+    Algorithm::Fractal(o,im_data, Vector2D<int>(w , h), depth , view, colouring);
 
     draw_timer.start();
     wxClientDC dc(this);
@@ -126,10 +129,10 @@ void BasicDrawPane::HandleKey(wxKeyEvent &evt) {
         case 'R':
             Export::exportImage(o,Vector2D(2000*3,2000*2)
                     , view, 10000
-                    ,"../test.bmp");
+                    ,"../test.bmp",colouring);
             break;
         case 'V':
-            Export::exportImages(o,Vector2D(900*3,900*2),view,Vector2x2<long double>(-1.9537185760276644789536215629510707003646530210971832275390625L,-2.3630621894364577103364029214455262206673324953953851945698261260986328125e-05L,-1.953718576027664449897003340339551868964917957782745361328125L,-2.363062189434091442072803513209204584466505139062064699828624725341796875e-05L),10000,60 * 60,"../Images");
+            Export::exportImages(o,Vector2D(900*3,900*2),view,Vector2x2<long double>(-1.9537185760276644789536215629510707003646530210971832275390625L,-2.3630621894364577103364029214455262206673324953953851945698261260986328125e-05L,-1.953718576027664449897003340339551868964917957782745361328125L,-2.363062189434091442072803513209204584466505139062064699828624725341796875e-05L),10000,60 * 60,"../Images",colouring);
             break;
     }
     BasicDrawPane::Refresh();
@@ -144,8 +147,15 @@ private:
     wxMenuBar* menubar;
     wxMenu *subMenu;
     wxMenu *renderMenu;
+    wxMenu *colourPalletMenu;
+    wxMenu *propertyMenu;
     void OnMandelbrot(wxCommandEvent& WXUNUSED(event));
     void OnBurningShip(wxCommandEvent& WXUNUSED(event));
+    void OnColouringDefault(wxCommandEvent& WXUNUSED(event));
+    void OnColouringDark(wxCommandEvent& WXUNUSED(event));
+    void OnColouringLight(wxCommandEvent& WXUNUSED(event));
+    void OnColouringFancy(wxCommandEvent& WXUNUSED(event));
+    void OnSetDepth(wxCommandEvent& WXUNUSED(event));
 };
 
 MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,400)) {
@@ -158,7 +168,9 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
 
     menubar = new wxMenuBar;
     subMenu = new wxMenu;
+    colourPalletMenu = new wxMenu;
     renderMenu = new wxMenu;
+    propertyMenu = new wxMenu;
 
     subMenu->AppendRadioItem(200, wxT("&Mandelbrot"));
     subMenu->AppendRadioItem(201, wxT("&Burning Ship"));
@@ -166,6 +178,25 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
 
     Connect(200, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnMandelbrot));
     Connect(201, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnBurningShip));
+
+
+    colourPalletMenu->AppendRadioItem(300, wxT("&default"));
+    colourPalletMenu->AppendRadioItem(301, wxT("&dark"));
+    colourPalletMenu->AppendRadioItem(302, wxT("&light"));
+    colourPalletMenu->AppendRadioItem(303, wxT("&fancy"));
+    menubar->Append(colourPalletMenu, wxT("&Colouring"));
+
+    Connect(300, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnColouringDefault));
+    Connect(301, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnColouringDark));
+    Connect(302, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnColouringLight));
+    Connect(303, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnColouringFancy));
+
+
+    propertyMenu->Append(400, wxT("&set Depth"));
+    menubar->Append(propertyMenu, wxT("&Properties"));
+
+    Connect(400, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetDepth));
+
 
     Centre();
 
@@ -181,6 +212,47 @@ void MyFrame::OnMandelbrot(wxCommandEvent& WXUNUSED(event))
 void MyFrame::OnBurningShip(wxCommandEvent& WXUNUSED(event))
 {
     drawPane->o = Algorithm::Algo::BurningShip;
+    drawPane->Refresh();
+}
+
+void MyFrame::OnColouringDefault(wxCommandEvent& WXUNUSED(event))
+{
+    drawPane->colouring.x = 20;
+    drawPane->colouring.y = 60;
+    drawPane->Refresh();
+}
+
+void MyFrame::OnColouringDark(wxCommandEvent& WXUNUSED(event))
+{
+    drawPane->colouring.x = 0;
+    drawPane->colouring.y = 40;
+    drawPane->Refresh();
+}
+
+void MyFrame::OnColouringLight(wxCommandEvent& WXUNUSED(event))
+{
+    drawPane->colouring.x = 120;
+    drawPane->colouring.y = 60;
+    drawPane->Refresh();
+}
+
+void MyFrame::OnColouringFancy(wxCommandEvent& WXUNUSED(event))
+{
+    drawPane->colouring.x = 0;
+    drawPane->colouring.y = 360;
+    drawPane->Refresh();
+}
+
+void MyFrame::OnSetDepth(wxCommandEvent& WXUNUSED(event))
+{
+    drawPane->depth = wxGetNumberFromUser(
+    wxString("Enter Depth value"),
+    wxString("Depth:"),
+    wxString("Depth value"),
+    265,
+    1,10000
+    );
+
     drawPane->Refresh();
 }
 
