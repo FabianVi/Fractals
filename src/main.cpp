@@ -32,6 +32,9 @@ public:
     int photoDepth;
     int videoDepth;
 
+    int videoFPS;
+    int videoDuration;
+
     explicit BasicDrawPane(wxFrame* parent);
     void paintEvent(wxPaintEvent & evt);
     void OnClick(wxMouseEvent& evt);
@@ -55,7 +58,9 @@ BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent),
                                                 photoRes(Vector2D<int>(600,400)),
                                                 videoRes(Vector2D<int>(600,400)),
                                                 videoDepth(100),
-                                                photoDepth(100)
+                                                photoDepth(100),
+                                                videoFPS(24),
+                                                videoDuration(1)
 {
     Bind(wxEVT_PAINT,&BasicDrawPane::paintEvent,this);
     Bind(wxEVT_LEFT_UP,&BasicDrawPane::OnClick,this);
@@ -170,6 +175,7 @@ private:
     wxMenu *videoMenu;
     wxMenu *videoSubResMenu;
     wxMenu *videoSubDepthMenu;
+    wxMenu *videoSubFramerateMenu;
 
     wxMenu *colourPalletMenu;
     wxMenu *propertyMenu;
@@ -194,6 +200,9 @@ private:
     void OnRenderVideo(wxCommandEvent& WXUNUSED(event));
     void OnVideoRes(wxCommandEvent& event);
     void OnVideoDepth(wxCommandEvent& event);
+    void OnVideoFramerate(wxCommandEvent& event);
+    void OnVideoDuration(wxCommandEvent& WXUNUSED(event));
+
 };
 
 MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,400)) {
@@ -215,6 +224,7 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
     videoMenu = new wxMenu;
     videoSubResMenu = new wxMenu;
     videoSubDepthMenu = new wxMenu;
+    videoSubFramerateMenu = new wxMenu;
 
     typeMenu->AppendRadioItem(200, wxT("&Mandelbrot"));
     typeMenu->AppendRadioItem(201, wxT("&Burning Ship"));
@@ -271,11 +281,17 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
     videoSubDepthMenu->AppendRadioItem(564,"&10000");
     videoSubDepthMenu->AppendRadioItem(565,"&100000");
 
+    videoSubFramerateMenu->AppendRadioItem(571,"&24 FPS");
+    videoSubFramerateMenu->AppendRadioItem(572,"&30 FPS");
+    videoSubFramerateMenu->AppendRadioItem(573,"&60 FPS");
+
     videoMenu->Append(500, wxT("&Set Start"));
     videoMenu->Append(501, wxT("&Set End"));
     videoMenu->Append(502, wxT("&Reset"));
-    videoMenu->Append(550,"&Resolution",videoSubResMenu);
-    videoMenu->Append(560,"&Depth",videoSubDepthMenu);
+    videoMenu->Append(550,wxT("&Resolution"),videoSubResMenu);
+    videoMenu->Append(560,wxT("&Depth"),videoSubDepthMenu);
+    videoMenu->Append(570,wxT("&Framerate"),videoSubFramerateMenu);
+    videoMenu->Append(580,wxT("&Duration"));
     videoMenu->Append(503, wxT("&Render Video \tV"));
     menubar->Append(videoMenu, wxT("&Video"));
 
@@ -292,6 +308,10 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
     Connect(563, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoDepth));
     Connect(564, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoDepth));
     Connect(565, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoDepth));
+    Connect(571, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoFramerate));
+    Connect(572, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoFramerate));
+    Connect(573, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoFramerate));
+    Connect(580, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnVideoDuration));
 
 
     propertyMenu->Append(600, wxT("&set Depth"));
@@ -460,10 +480,38 @@ void MyFrame::OnVideoDepth(wxCommandEvent &event) {
     }
 }
 
+void MyFrame::OnVideoFramerate(wxCommandEvent &event) {
+    switch (event.GetId()) {
+        case 571:
+            drawPane->videoFPS = 24;
+            std::cout << "24" << std::endl;
+            break;
+        case 572:
+            drawPane->videoFPS = 30;
+            std::cout << "30" << std::endl;
+            break;
+        case 573:
+            drawPane->videoFPS = 60;
+            std::cout << "60" << std::endl;
+            break;
+    }
+}
+
+void MyFrame::OnVideoDuration(wxCommandEvent &event) {
+    drawPane->videoDuration = wxGetNumberFromUser(
+            wxString("Enter duration in seconds"),
+            wxString("Duration:"),
+            wxString("Duration"),
+            10,
+            1, 10000
+    );
+
+    drawPane->Refresh();
+}
+
 void MyFrame::OnRenderVideo(wxCommandEvent& WXUNUSED(event))
 {
-    Export::exportImages(drawPane->o,drawPane->videoRes,drawPane->start,drawPane->end,drawPane->videoDepth,10,"../Images",drawPane->colouring);
-
+    Export::exportImages(drawPane->o,drawPane->videoRes,drawPane->start,drawPane->end,drawPane->videoDepth,(drawPane->videoFPS)*(drawPane->videoDuration),"../Images",drawPane->colouring);
 }
 
 class MyApp : public wxApp
