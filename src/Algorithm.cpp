@@ -125,7 +125,6 @@ namespace Algorithm {
 
         if(screenRect.x1 > screenRect.x2) return;
         if(screenRect.y1 > screenRect.y2) return;
-        std::cout << screenRect << std::endl;
 
         for (int x = screenRect.x1; x < screenRect.x2; ++x) {
             image[x*3 + screenRect.y1 * resolution.x*3] = r;

@@ -463,6 +463,7 @@ void MyFrame::OnVideoDepth(wxCommandEvent &event) {
 void MyFrame::OnRenderVideo(wxCommandEvent& WXUNUSED(event))
 {
     Export::exportImages(drawPane->o,drawPane->videoRes,drawPane->start,drawPane->end,drawPane->videoDepth,10,"../Images",drawPane->colouring);
+
 }
 
 class MyApp : public wxApp
