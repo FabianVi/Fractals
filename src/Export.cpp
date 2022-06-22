@@ -24,6 +24,6 @@ void Export::exportImages(Algorithm::Algo o,Vector2D<int> resolution, Vector2x2<
     for (int i = 0; i < nrOfFrames; ++i) {
         Export::exportImage(o,resolution,view,depth,(wxString::Format("%s/%d.bmp",path,i)),colouring);
         view = Algorithm::zoom(view,viewCenterEnd,0.99L,1.0L/nrOfFrames);
-        std::cout << "Iteration: " << i << " / " << nrOfFrames << std::endl;
+        std::cout << "Iteration: " << i+1 << " / " << nrOfFrames << std::endl;
     }
 }
