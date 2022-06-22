@@ -14,7 +14,7 @@ namespace Algorithm {
     };
 
     void Fractal(Algo o, unsigned char *image, Vector2D<int> resolution = Vector2D<int>(1200,800), int depth=100, Vector2x2<long double> view = Vector2x2<long double>(-2,-1,1,1),Vector2D<double> colouring = Vector2D<double>(20,60));
-
+    void DrawRect(Vector2x2<long double> rect,Vector2x2<long double> view, unsigned char *image, Vector2D<int> resolution , int r, int g, int b);
 
     long double map(int point, int pixelWidth, long double min, long double max);
 

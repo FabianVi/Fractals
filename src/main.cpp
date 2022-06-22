@@ -42,7 +42,7 @@ public:
 BasicDrawPane::BasicDrawPane(wxFrame* parent) : wxPanel(parent),
                                                 o(Algorithm::Algo::Mandelbrot),
                                                 view(-2,-1,1,1),
-                                                start(view),
+                                                start(Vector2x2<long double>(0,0,0,0)),
                                                 end(Vector2x2<long double>(0,0,0,0)),
                                                 depth(100),
                                                 colouring(Vector2D<double>(20,60))
@@ -68,6 +68,9 @@ void BasicDrawPane::paintEvent(wxPaintEvent & evt)
 
     auto* im_data = (unsigned char*) malloc(w * h * 3 );
     Algorithm::Fractal(o,im_data, Vector2D<int>(w , h), depth , view, colouring);
+
+    Algorithm::DrawRect(start,view,im_data,Vector2D<int>(w , h), 255, 0 ,0 );
+    Algorithm::DrawRect(end,view,im_data,Vector2D<int>(w , h), 0, 255 , 0 );
 
     draw_timer.start();
     wxClientDC dc(this);
@@ -167,6 +170,7 @@ private:
     void OnRenderPhoto(wxCommandEvent& WXUNUSED(event));
     void OnSetStart(wxCommandEvent& WXUNUSED(event));
     void OnSetEnd(wxCommandEvent& WXUNUSED(event));
+    void OnReset(wxCommandEvent& WXUNUSED(event));
     void OnRenderVideo(wxCommandEvent& WXUNUSED(event));
 };
 
@@ -213,13 +217,15 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
 
     videoMenu->Append(500, wxT("&Set Start"));
     videoMenu->Append(501, wxT("&Set End"));
-    videoMenu->Append(502, wxT("&Render Video \tV"));
+    videoMenu->Append(502, wxT("&Reset"));
+    videoMenu->Append(503, wxT("&Render Video \tV"));
     menubar->Append(videoMenu, wxT("&Video"));
 
 
     Connect(500, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetStart));
     Connect(501, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetEnd));
-    Connect(502, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderVideo));
+    Connect(502, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnReset));
+    Connect(503, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderVideo));
 
 
     propertyMenu->Append(600, wxT("&set Depth"));
@@ -299,6 +305,11 @@ void MyFrame::OnSetStart(wxCommandEvent& WXUNUSED(event))
 void MyFrame::OnSetEnd(wxCommandEvent& WXUNUSED(event))
 {
     drawPane->end = drawPane->view;
+}
+
+void MyFrame::OnReset(wxCommandEvent& WXUNUSED(event)) {
+    drawPane->start = Vector2x2<long double>(0,0,0,0);
+    drawPane->end = Vector2x2<long double>(0,0,0,0);
 }
 
 void MyFrame::OnRenderVideo(wxCommandEvent& WXUNUSED(event))

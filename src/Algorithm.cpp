@@ -106,6 +106,52 @@ namespace Algorithm {
         return (point/(pixelWidth*1.0f)*(max-min)) + min;
     }
 
+    void DrawRect(Vector2x2<long double> rect,Vector2x2<long double> view, unsigned char *image, Vector2D<int> resolution, int r , int g, int b) {
+
+        long double deltaHeightView = abs(view.y2 - view.y1);
+        long double deltaWidthView = abs(view.x2 - view.x1);
+
+        Vector2x2<int> screenRect = Vector2x2<int>(
+                (rect.x1-view.x1) / deltaWidthView * resolution.x,
+                (rect.y1-view.y1) / deltaHeightView * resolution.y,
+                (rect.x2-view.x1) / deltaWidthView * resolution.x,
+                (rect.y2-view.y1) / deltaHeightView * resolution.y
+                );
+
+        if(screenRect.x1 < 0) screenRect.x1 = 1;
+        if(screenRect.y1 < 0) screenRect.y1 = 1;
+        if(screenRect.x2 > resolution.x) screenRect.x2 = resolution.x-1;
+        if(screenRect.y2 > resolution.y) screenRect.y2 = resolution.y-1;
+
+        if(screenRect.x1 > screenRect.x2) return;
+        if(screenRect.y1 > screenRect.y2) return;
+        std::cout << screenRect << std::endl;
+
+        for (int x = screenRect.x1; x < screenRect.x2; ++x) {
+            image[x*3 + screenRect.y1 * resolution.x*3] = r;
+            image[x*3 + screenRect.y1 * resolution.x*3 + 1] = g;
+            image[x*3 + screenRect.y1 * resolution.x*3 + 2] = b;
+        }
+
+        for (int x = screenRect.x1; x < screenRect.x2; ++x) {
+            image[x*3 + screenRect.y2 * resolution.x*3] = r;
+            image[x*3 + screenRect.y2 * resolution.x*3 + 1] = g;
+            image[x*3 + screenRect.y2 * resolution.x*3 + 2] = b;
+        }
+
+        for (int y = screenRect.y1; y < screenRect.y2; ++y) {
+            image[screenRect.x1*3 + y * resolution.x*3] = r;
+            image[screenRect.x1*3 + y * resolution.x*3 + 1] = g;
+            image[screenRect.x1*3 + y * resolution.x*3 + 2] = b;
+        }
+
+        for (int y = screenRect.y1; y < screenRect.y2; ++y) {
+            image[screenRect.x2*3 + y * resolution.x*3] = r;
+            image[screenRect.x2*3 + y * resolution.x*3 + 1] = g;
+            image[screenRect.x2*3 + y * resolution.x*3 + 2] = b;
+        }
+    }
+
     int mandelbrot(long double x ,long double y , int depth) {
         long double x1 = 0;
         long double y1 = 0;
