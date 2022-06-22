@@ -206,26 +206,26 @@ MyFrame::MyFrame() : wxFrame(nullptr, 10, "Fractals",wxPoint(50,50), wxSize(600,
     Connect(303, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnColouringFancy));
 
 
-    photoMenu->Append(300, wxT("Render Photo \tR"));
+    photoMenu->Append(400, wxT("Render Photo \tR"));
     menubar->Append(photoMenu,wxT("&Photo"));
-    Connect(300, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderPhoto));
+    Connect(400, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderPhoto));
 
 
-    videoMenu->Append(400, wxT("&Set Start"));
-    videoMenu->Append(401, wxT("&Set End"));
-    videoMenu->Append(402, wxT("&Render Video \tV"));
+    videoMenu->Append(500, wxT("&Set Start"));
+    videoMenu->Append(501, wxT("&Set End"));
+    videoMenu->Append(502, wxT("&Render Video \tV"));
     menubar->Append(videoMenu, wxT("&Video"));
 
 
-    Connect(400, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetStart));
-    Connect(401, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetEnd));
-    Connect(402, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderVideo));
+    Connect(500, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetStart));
+    Connect(501, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetEnd));
+    Connect(502, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnRenderVideo));
 
 
-    propertyMenu->Append(400, wxT("&set Depth"));
+    propertyMenu->Append(600, wxT("&set Depth"));
     menubar->Append(propertyMenu, wxT("&Properties"));
 
-    Connect(400, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetDepth));
+    Connect(600, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MyFrame::OnSetDepth));
 
 
     Centre();
